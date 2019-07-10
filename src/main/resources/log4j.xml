@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+<!--    <appender name="@service.name@-log" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="Encoding" value="UTF-8" />
+        <param name="File"
+               value="/home/work/log/@service.name@/@service.name@.log"/>
+        <param name="DatePattern" value=".yyyyMMdd"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern"
+                   value="[%-5p %d{yyyy-MM-dd HH:mm:ss.SSS}] [%t] [%X{SessionId}] %l [%m]%n"/>
+        </layout>
+    </appender>-->
+
+    <appender name="@service.name@-access-log" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="Encoding" value="UTF-8" />
+        <param name="File"
+               value="/home/work/log/@service.name@/@service.name@-access.log"/>
+        <param name="DatePattern" value=".yyyyMMdd"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%-5p %d{yyyy-MM-dd HH:mm:ss.SSS}] [%t] %l [%m]%n" />
+        </layout>
+    </appender>
+
+    <appender name="@service.name@-error-log" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="Encoding" value="UTF-8" />
+        <param name="File"
+               value="/home/work/log/@service.name@/@service.name@-error.log"/>
+        <param name="Threshold" value="error"/>
+        <param name="DatePattern" value=".yyyyMMdd"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%-5p %d{yyyy-MM-dd HH:mm:ss.SSS}] [%t] %l [%m]%n" />
+        </layout>
+    </appender>
+
+    <appender name="@service.name@-console" class="org.apache.log4j.ConsoleAppender">
+        <param name="Encoding" value="UTF-8" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{ISO8601} %-5p [%t] [%l] - %m%n"/>
+        </layout>
+    </appender>
+
+    <logger name="net.paoding.rose.jade.context.JadeInvocationHandler" additivity="false">
+        <level value="ERROR" />
+        <appender-ref ref="@service.name@-error-log"/>
+        <appender-ref ref="@service.name@-access-log"/>
+        <appender-ref ref="@service.name@-console"/>
+    </logger>
+
+    <logger name="org.springframework" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="@service.name@-error-log"/>
+        <appender-ref ref="@service.name@-access-log"/>
+        <appender-ref ref="@service.name@-console"/>
+    </logger>
+
+    <logger name="org.apache.hadoop.hbase" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="@service.name@-error-log"/>
+        <appender-ref ref="@service.name@-access-log"/>
+        <appender-ref ref="@service.name@-console"/>
+    </logger>
+
+    <root>
+        <priority value="@log_level@"/>
+        <!--<appender-ref ref="@service.name@-log"/>-->
+        <appender-ref ref="@service.name@-error-log"/>
+        <appender-ref ref="@service.name@-access-log"/>
+        <appender-ref ref="@service.name@-console"/>
+    </root>
+</log4j:configuration>
