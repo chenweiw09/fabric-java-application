@@ -1,4 +1,4 @@
-//package com.xiaomi.chen.springboottest;
+//package com.my.chen.fabric;
 //
 //import org.springframework.boot.SpringApplication;
 //import org.springframework.boot.autoconfigure.SpringBootApplication;

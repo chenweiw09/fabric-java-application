@@ -1,7 +1,6 @@
 package com.my.chen.fabric.app.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Level;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -11,7 +10,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-import static java.lang.String.format;
+import static com.my.chen.fabric.app.config.Config.BASIC_PATH;
 
 /**
  * @author chenwei
@@ -72,6 +71,15 @@ public class BasicConfig {
 
     private static final Properties sdkProperties = new Properties();
 
+    // tls setting
+    private final boolean runningTLS=false;
+    private final boolean runningFabricCATLS;
+    private final boolean runningFabricTLS;
+
+
+    public boolean isRunningFabricTLS() {
+        return runningFabricTLS;
+    }
 
     public Properties getDefaultProperties(){
         return sdkProperties;
@@ -144,6 +152,10 @@ public class BasicConfig {
             defaultProperty(PROPOSAL_CONSISTENCY_VALIDATION, "true");
             defaultProperty(EVENTHUB_RECONNECTION_WARNING_RATE, "50");
             defaultProperty(PEER_EVENT_RECONNECTION_WARNING_RATE, "50");
+
+            runningFabricCATLS = runningTLS;
+            runningFabricTLS = runningTLS;
+
 
             final String inLogLevel = sdkProperties.getProperty(LOGGERLEVEL);
 
@@ -228,6 +240,7 @@ public class BasicConfig {
         ret.setProperty("hostnameOverride", name);
         ret.setProperty("sslProvider", "openSSL");
         ret.setProperty("negotiationType", "TLS");
+        ret.setProperty("grpc.ManagedChannelBuilderOption.maxInboundMessageSize", "9000000");
 
         return ret;
     }
@@ -241,44 +254,8 @@ public class BasicConfig {
         }
     }
 
-    public static String getChannelPath() {
-        return Config.BASIC_CONFIG_PATH+"data"+File.separator;
+    private static String getChannelPath() {
+        return BASIC_PATH;
     }
-
-
-
-    // File peerCert = Paths.get(config.getCryptoConfigPath(), "/peerOrganizations", peers.getOrgDomainName(), "peers", peers.get().get(i).getPeerName(), "tls/server.crt")
-    //                    .toFile();
-
-    public Properties getPeerProperties(File peerCert, String hostnameOverride){
-        Properties peerProperties = new Properties();
-        peerProperties.setProperty("pemFile", peerCert.getAbsolutePath());
-        // ret.setProperty("trustServerCertificate", "true"); //testing
-        // environment only NOT FOR PRODUCTION!
-        peerProperties.setProperty("hostnameOverride", hostnameOverride);
-        peerProperties.setProperty("sslProvider", "openSSL");
-        peerProperties.setProperty("negotiationType", "TLS");
-        // 在grpc的NettyChannelBuilder上设置特定选项
-        peerProperties.put("grpc.ManagedChannelBuilderOption.maxInboundMessageSize", 9000000);
-
-        return peerProperties;
-    }
-
-
-    // File ordererCert = Paths.get(config.getCryptoConfigPath(), "/ordererOrganizations", orderers.getOrdererDomainName(), "orderers", orderers.get().get(i).getOrdererName(),
-    //                    "tls/server.crt").toFile();
-
-    public Properties getOrdererProperties(File ordererCert, String hostnameOverride){
-        Properties ordererProperties = new Properties();
-        ordererProperties.setProperty("pemFile", ordererCert.getAbsolutePath());
-        ordererProperties.setProperty("hostnameOverride", hostnameOverride);
-        ordererProperties.setProperty("sslProvider", "openSSL");
-        ordererProperties.setProperty("negotiationType", "TLS");
-        ordererProperties.put("grpc.ManagedChannelBuilderOption.maxInboundMessageSize", 9000000);
-        ordererProperties.setProperty("ordererWaitTimeMilliSecs", "300000");
-        return ordererProperties;
-    }
-
-
 
 }

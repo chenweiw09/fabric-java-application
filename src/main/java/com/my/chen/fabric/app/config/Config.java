@@ -3,7 +3,7 @@ package com.my.chen.fabric.app.config;
 import java.io.File;
 
 public class Config {
-	public static final String baseUrl ="your url";
+	public static final String baseUrl ="";
 	public static final String ORG1_MSP = "Org1MSP";
 
 	public static final String ORG1 = "org1";
@@ -16,15 +16,15 @@ public class Config {
 
 	public static final String ADMIN_PASSWORD = "adminpw";
 
-	public static final String BASIC_CONFIG_PATH="src"+File.separator+"main"+File.separator+"resources"+File.separator;
+	public static final String BASIC_PATH="src"+File.separator+"main"+File.separator+"resources"+File.separator;
+
+	public static final String CHANNEL_CONFIG_PATH = BASIC_PATH+"config"+File.separator+"channel.tx";
 	
-	public static final String CHANNEL_CONFIG_PATH = BASIC_CONFIG_PATH+"config"+File.separator+"channel.tx";
-	
-	public static final String ORG1_USR_BASE_PATH =BASIC_CONFIG_PATH+"data"+File.separator+ "crypto-config" + File.separator + "peerOrganizations" + File.separator
+	public static final String ORG1_USR_BASE_PATH =BASIC_PATH+ "crypto-config" + File.separator + "peerOrganizations" + File.separator
 			+ "org1.example.com" + File.separator + "users" + File.separator + "Admin@org1.example.com"
 			+ File.separator + "msp";
 	
-	public static final String ORG2_USR_BASE_PATH ="src"+File.separator+"main"+File.separator+"resources"+File.separator+"data"+File.separator+ "crypto-config" + File.separator + "peerOrganizations" + File.separator
+	public static final String ORG2_USR_BASE_PATH ="src"+File.separator+"main"+File.separator+"resources"+File.separator+"crypto-config" + File.separator + "peerOrganizations" + File.separator
 			+ "org2.example.com" + File.separator + "users" + File.separator + "Admin@org2.example.com"
 			+ File.separator + "msp";
 	
@@ -67,6 +67,9 @@ public class Config {
 	public static final String CHAINCODE_1_PATH = "github.com/fabcar";
 	
 	public static final String CHAINCODE_1_VERSION = "1";
+
+	public static final String ORG1_EVENTHUB_URL="grpc://"+Config.baseUrl+":7053";
+	public static final String ORG2_EVENTHUB_URL="grpc://"+Config.baseUrl+":9053";
 
 
 

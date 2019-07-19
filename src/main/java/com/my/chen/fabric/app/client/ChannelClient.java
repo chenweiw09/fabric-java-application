@@ -87,8 +87,9 @@ public class ChannelClient {
 		ChaincodeID ccid = ChaincodeID.newBuilder().setName(chaincodeName).build();
 		request.setChaincodeID(ccid);
 		request.setFcn(functionName);
-		if (args != null)
+		if (args != null){
 			request.setArgs(args);
+		}
 
 		Collection<ProposalResponse> response = channel.queryByChaincode(request);
 
@@ -199,6 +200,12 @@ public class ChannelClient {
 			return info;
 		}
 		return null;
+	}
+
+	public void shutDown(){
+		if(!channel.isShutdown()){
+			channel.shutdown(true);
+		}
 	}
 
 }
