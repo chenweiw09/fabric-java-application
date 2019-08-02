@@ -1,7 +1,5 @@
 package com.my.chen.fabric;
 
-import com.my.chen.fabric.app.util.Util;
-
 /**
  * @author chenwei
  * @version 1.0
@@ -12,11 +10,7 @@ public class TestMain {
 
     public static void main(String[] args) {
 
-        try {
-            Util.readUserContext("df", "dfggh");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
         System.out.println("hah");
 
     }
