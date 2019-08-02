@@ -2,6 +2,7 @@ package com.my.chen.fabric.app.dao;
 
 
 import com.my.chen.fabric.app.domain.Chaincode;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -37,10 +38,6 @@ import java.util.List;
 @Repository
 public interface ChaincodeMapper extends PagingAndSortingRepository<Chaincode, Integer>, JpaSpecificationExecutor<Chaincode> {
 
-//    @Modifying
-//    @Query("update chaincode set name=:#{#chaincode.name}, path=:#{#chaincode.path}, version=:#{#chaincode.version}, " +
-//            "proposal_wait_time=:#{#chaincode.proposalWaitTime}, invoke_wait_time=:#{#chaincode.invokeWaitTime} where id=:#{#chaincode.id}")
-//    int update(@Param("chaincode") Chaincode chaincode);
 
 
     int countByChannelId(int channelId);

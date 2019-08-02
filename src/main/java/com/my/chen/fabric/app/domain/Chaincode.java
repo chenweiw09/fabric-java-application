@@ -3,6 +3,7 @@ package com.my.chen.fabric.app.domain;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -14,6 +15,7 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table(name = "chaincode")
+@DynamicUpdate
 public class Chaincode implements Serializable {
 
     @Id

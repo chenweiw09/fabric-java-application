@@ -42,7 +42,7 @@ public class FbChainCode {
     private String chaincodeSource;
 
     /** 语言 */
-    private String chaincodeLanguage;
+    private TransactionRequest.Type chaincodeLanguage = TransactionRequest.Type.GO_LANG;
 
     private String chaincodeVersion;
 
@@ -88,7 +88,7 @@ public class FbChainCode {
         }
     }
 
-    public void setChaincodeLanguage(String chaincodeLanguage) {
+    public void setChaincodeLanguage(TransactionRequest.Type chaincodeLanguage) {
         this.chaincodeLanguage = chaincodeLanguage;
     }
 
@@ -113,7 +113,7 @@ public class FbChainCode {
         installProposalRequest.setChaincodeVersion(chaincodeVersion);
         installProposalRequest.setChaincodeSourceLocation(new File(chaincodeSource));
         installProposalRequest.setChaincodePath(chaincodePath);
-        installProposalRequest.setChaincodeLanguage(TransactionRequest.Type.GO_LANG);
+        installProposalRequest.setChaincodeLanguage(chaincodeLanguage);
         installProposalRequest.setProposalWaitTime(proposalWaitTime);
 
         long currentStart = System.currentTimeMillis();
