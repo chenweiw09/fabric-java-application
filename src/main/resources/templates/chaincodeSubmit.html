@@ -42,7 +42,7 @@
                                                            th:text="${intentLarge}"></span>
                         <small>HyperLedger Fabric网络合约单元</small>
                     </div>
-                    <p class="page-header-description">新增合约，即写入一个Fabric网络中所属节点服务器上已经安装并实例化过的智能合约。</p>
+                    <p class="page-header-description">新增合约，即写入一个Fabric网络中所属节点服务器上已经安装并实例化过的智能合约。同一通道上合约名称和版本相同，视为同一个合约，新增无效。</p>
                 </div>
             </div>
         </div>
@@ -79,7 +79,7 @@
                                                th:field="*{name}">
                                         <input type="hidden" name="intent" th:value="${intent}"/>
                                         <input type="hidden" name="id" th:value="${chaincode.id}"/>
-                                        <small>请输入合约名称，如testcc。</small>
+                                        <small>请输入合约名称，如mycc。</small>
                                     </div>
                                 </div>
                                 <div class="am-form-group">
@@ -111,7 +111,7 @@
                                         <input type="text" class="tpl-form-input" id="proposal-wait-time"
                                                placeholder="单个提案请求的超时时间以毫秒为单位"
                                                th:field="*{proposalWaitTime}">
-                                        <small>请输入提案超时时间，如90000。</small>
+                                        <small>默认90s。</small>
                                     </div>
                                 </div>
                                 <div class="am-form-group">
@@ -121,7 +121,7 @@
                                         <input type="text" class="tpl-form-input" id="invoke-wait-time"
                                                placeholder="事务等待时间以秒为单位"
                                                th:field="*{invokeWaitTime}">
-                                        <small>请输入事务等待时间，如120。</small>
+                                        <small>默认120s。</small>
                                     </div>
                                 </div>
                                 <div class="am-form-group">

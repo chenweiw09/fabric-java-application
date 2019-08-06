@@ -4,13 +4,16 @@ import com.my.chen.fabric.app.domain.Channel;
 import com.my.chen.fabric.app.domain.League;
 import com.my.chen.fabric.app.domain.Org;
 import com.my.chen.fabric.app.domain.Peer;
+import com.my.chen.fabric.app.dto.Api;
 import com.my.chen.fabric.app.service.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @CrossOrigin
@@ -28,6 +31,11 @@ public class ChannelController {
     private LeagueService leagueService;
     @Resource
     private ChaincodeService chaincodeService;
+
+    private Map<Integer, Peer> peerMap = new HashMap<>();
+    private Map<Integer, Org> orgMap = new HashMap<>();
+    private Map<Integer, League> leagueMap = new HashMap<>();
+
 
     @PostMapping(value = "submit")
     public ModelAndView submit(@ModelAttribute Channel channel,
@@ -55,11 +63,11 @@ public class ChannelController {
         Channel channel = new Channel();
         List<Peer> peers = peerService.listAll();
         for (Peer peer : peers) {
-            channel.setPeerName(peer.getName());
             Org org = orgService.get(peer.getOrgId());
-            channel.setOrgName(org.getName());
-            League league = leagueService.getById(org.getLeagueId());
-            channel.setLeagueName(league.getName());
+            peer.setOrgName(org.getName());
+            peer.setOrgId(org.getId());
+//            League league = leagueService.getById(org.getLeagueId());
+//            channel.setLeagueName(league.getName());
         }
         modelAndView.addObject("channel", channel);
         modelAndView.addObject("peers", peers);
@@ -74,6 +82,8 @@ public class ChannelController {
         modelAndView.addObject("submit", "修改");
         modelAndView.addObject("intent", "edit");
         Channel channel = channelService.get(id);
+
+
         Org org = orgService.get(peerService.get(channel.getPeerId()).getOrgId());
         channel.setOrgName(org.getName());
         List<Peer> peers = peerService.listById(org.getId());
@@ -93,11 +103,53 @@ public class ChannelController {
         ModelAndView modelAndView = new ModelAndView("channels");
         List<Channel> channels = channelService.listAll();
         for (Channel channel : channels) {
-            channel.setPeerName(peerService.get(channel.getPeerId()).getName());
+            Peer peer = getPeerById(channel.getPeerId());
+            channel.setPeerName(peer.getName());
             channel.setChaincodeCount(chaincodeService.countById(channel.getId()));
+            Org org = getOrgByOrgId(peer.getOrgId());
+            channel.setOrgName(org.getName());
+
+            League league = getLeagueByLeagueId(org.getLeagueId());
+            channel.setLeagueName(league.getName());
         }
         modelAndView.addObject("channels", channels);
         return modelAndView;
+    }
+
+    private Peer getPeerById(Integer peerId){
+        if(peerMap.containsKey(peerId)){
+            return peerMap.get(peerId);
+        }else {
+            Peer peer = peerService.get(peerId);
+            if(peer != null){
+                peerMap.put(peerId, peer);
+            }
+            return peer;
+        }
+    }
+
+    private Org getOrgByOrgId(Integer orgId){
+        if(orgMap.containsKey(orgId)){
+            return orgMap.get(orgId);
+        }else {
+            Org org = orgService.get(orgId);
+            if(org != null){
+                orgMap.put(orgId, org);
+            }
+            return org;
+        }
+    }
+
+    private League getLeagueByLeagueId(Integer leagueId){
+        if(leagueMap.containsKey(leagueId)){
+            return leagueMap.get(leagueId);
+        }else {
+            League league = leagueService.getById(leagueId);
+            if(league != null){
+                leagueMap.put(leagueId, league);
+            }
+            return league;
+        }
     }
 
 }

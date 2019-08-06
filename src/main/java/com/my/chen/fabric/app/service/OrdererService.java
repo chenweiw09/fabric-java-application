@@ -8,6 +8,7 @@ import com.my.chen.fabric.app.dao.OrdererMapper;
 import com.my.chen.fabric.app.dao.PeerMapper;
 import com.my.chen.fabric.app.domain.Orderer;
 import com.my.chen.fabric.app.util.DateUtil;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -15,7 +16,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 @Service
-public class OrdererService  {
+public class OrdererService {
 
     @Resource
     private OrdererMapper ordererMapper;
@@ -40,8 +41,12 @@ public class OrdererService  {
 
     public int update(Orderer orderer) {
 //        FabricHelper.obtain().removeManager(peerMapper.list(orderer.getOrgId()), channelMapper, chaincodeMapper);
-         ordererMapper.save(orderer);
-         return 1;
+        Orderer entity = ordererMapper.findById(orderer.getId()).get();
+        orderer.setCreateTime(entity.getCreateTime());
+        orderer.setUpdateTime(DateUtil.getCurrent());
+
+        ordererMapper.save(orderer);
+        return 1;
     }
 
 

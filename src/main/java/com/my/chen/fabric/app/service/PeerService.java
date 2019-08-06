@@ -13,7 +13,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 @Service
-public class PeerService  {
+public class PeerService {
 
     @Resource
     private PeerMapper peerMapper;
@@ -37,8 +37,12 @@ public class PeerService  {
 
     public int update(Peer peer) {
 //        FabricHelper.obtain().removeManager(peerMapper.list(peer.getOrgId()), channelMapper, chaincodeMapper);
-         peerMapper.save(peer);
-         return 1;
+        Peer entity = peerMapper.findById(peer.getId()).get();
+        peer.setChannelCount(entity.getChannelCount());
+        peer.setUpdateTime(DateUtil.getCurrent());
+        peer.setCreateTime(entity.getCreateTime());
+        peerMapper.save(peer);
+        return 1;
     }
 
 

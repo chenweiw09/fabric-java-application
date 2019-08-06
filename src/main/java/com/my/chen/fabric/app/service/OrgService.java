@@ -80,6 +80,12 @@ public class OrgService  {
             }
         }
 //        FabricHelper.obtain().removeManager(peerMapper.list(org.getId()), channelMapper, chaincodeMapper);
+
+        // 同样的道理，org中更新的数据仅包括修改的字段信息
+        Org entity = orgMapper.findById(org.getId()).get();
+        org.setPeerCount(entity.getPeerCount());
+        org.setOrdererCount(entity.getOrdererCount());
+        org.setUpdateTime(DateUtil.getCurrent());
         orgMapper.save(org);
         return 1;
     }

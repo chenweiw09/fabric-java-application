@@ -61,6 +61,12 @@ public class Chaincode implements Serializable {
     @Column(length = 40)
     private String leagueName;
 
+    @Column(length = 2)
+    private Integer installed=0;
+
+    @Column(length = 2)
+    private Integer instantiated=0;
+
     @Column
     private long createTime;
 

@@ -66,7 +66,8 @@
                                         <th>节点名称</th>
                                         <th>组织名称</th>
                                         <th>通道数量</th>
-                                        <th>时间</th>
+                                        <th>创建时间</th>
+                                        <th>更新时间</th>
                                         <th>操作</th>
                                     </tr>
                                     </thead>
@@ -76,7 +77,8 @@
                                         <td th:text="${peer.name}">节点列表</td>
                                         <td th:text="${peer.orgName}">组织名称</td>
                                         <td th:text="${peer.channelCount}">通道数量</td>
-                                        <td th:text="${peer.date}">时间</td>
+                                        <td th:text="${#dates.format(peer.createTime, 'yyyy-MM-dd HH:mm:ss')}">创建时间</td>
+                                        <td th:text="${#dates.format(peer.updateTime, 'yyyy-MM-dd HH:mm:ss')}">更新时间</td>
                                         <td>
                                             <div class="tpl-table-black-operation">
                                                 <a th:href="@{/peer/edit(id=${peer.id})}">

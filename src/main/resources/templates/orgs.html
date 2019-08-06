@@ -67,7 +67,8 @@
                                         <th>联盟名称</th>
                                         <th>排序数量</th>
                                         <th>节点数量</th>
-                                        <th>时间</th>
+                                        <th>创建时间</th>
+                                        <th>更新时间</th>
                                         <th>操作</th>
                                     </tr>
                                     </thead>
@@ -78,7 +79,8 @@
                                         <td th:text="${org.leagueName}">联盟名称</td>
                                         <td th:text="${org.ordererCount}">排序数量</td>
                                         <td th:text="${org.peerCount}">节点数量</td>
-                                        <td th:text="${org.date}">时间</td>
+                                        <td th:text="${#dates.format(org.createTime, 'yyyy-MM-dd HH:mm:ss')}">创建时间</td>
+                                        <td th:text="${#dates.format(org.updateTime, 'yyyy-MM-dd HH:mm:ss')}">更新时间</td>
                                         <td>
                                             <div class="tpl-table-black-operation">
                                                 <a th:href="@{/org/edit(id=${org.id})}">

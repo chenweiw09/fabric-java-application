@@ -51,8 +51,6 @@ public class Org implements Serializable {
     @Column
     private int ordererCount; // required
 
-    @Column (length = 20)
-    private String date;
 
     @Column
     private long createTime;

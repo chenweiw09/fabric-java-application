@@ -65,18 +65,24 @@
                                         <th>ID</th>
                                         <th>通道名称</th>
                                         <th>节点名称</th>
+                                        <th>组织名称</th>
+                                        <th>联盟名称</th>
                                         <th>合约数量</th>
-                                        <th>时间</th>
+                                        <th>创建时间</th>
+                                        <th>更新时间</th>
                                         <th>操作</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <tr class="gradeX" th:each="channel : ${channels}">
                                         <td th:text="${channel.id}">ID</td>
-                                        <td th:text="${channel.name}">节点名称</td>
-                                        <td th:text="${channel.peerName}">组织名称</td>
-                                        <td th:text="${channel.chaincodeCount}">通道数量</td>
-                                        <td th:text="${channel.date}">时间</td>
+                                        <td th:text="${channel.name}">通道名称</td>
+                                        <td th:text="${channel.peerName}">节点名称</td>
+                                        <td th:text="${channel.orgName}">组织名称</td>
+                                        <td th:text="${channel.leagueName}">联盟名称</td>
+                                        <td th:text="${channel.chaincodeCount}">合约数量</td>
+                                        <td th:text="${#dates.format(channel.createTime, 'yyyy-MM-dd HH:mm:ss')}">创建时间</td>
+                                        <td th:text="${#dates.format(channel.updateTime, 'yyyy-MM-dd HH:mm:ss')}">更新时间</td>
                                         <td>
                                             <div class="tpl-table-black-operation">
                                                 <a th:href="@{/channel/edit(id=${channel.id})}">

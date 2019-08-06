@@ -74,7 +74,6 @@ public class LeagueController {
         List<League> leagues = leagueService.listAll();
         for (League league : leagues) {
             league.setOrgCount(orgService.countById(league.getId()));
-            league.setDate(DateUtil.getTimeStr(league.getUpdateTime()));
         }
         modelAndView.addObject("leagues", leagues);
         return modelAndView;

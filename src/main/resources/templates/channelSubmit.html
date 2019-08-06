@@ -61,13 +61,13 @@
                                   th:object="${channel}">
                                 <div class="am-form-group">
                                     <label for="peer-name" class="am-u-sm-3 am-form-label">节点 <span
-                                            class="tpl-form-line-small-title">org</span></label>
+                                            class="tpl-form-line-small-title">peer</span></label>
                                     <div class="am-u-sm-9">
                                         <select data-am-selected="{searchBox: 1}" style="display: none;"
                                                 id="peer-name"
                                                 th:field="*{peerId}">
                                             <option th:each="peer: ${peers}" th:value="${peer.id}"
-                                                    th:text="${channel.leagueName}+'-'+${channel.orgName}+'-'+${channel.peerName}"></option>
+                                                    th:text="${peer.orgName}+'-'+${peer.name}"></option>
                                         </select>
                                     </div>
                                 </div>

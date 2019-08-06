@@ -35,7 +35,6 @@ public class ChannelService {
             return 0;
         }
 
-
         channel.setCreateTime(DateUtil.getCurrent());
         channel.setUpdateTime(DateUtil.getCurrent());
         channelMapper.save(channel);
@@ -43,14 +42,13 @@ public class ChannelService {
     }
 
 
-    public int updateChannelName(Channel channel) {
-//        FabricHelper.obtain().removeManager(channelMapper.list(channel.getPeerId()), chaincodeMapper);
-//        return channelMapper.updateChannelName(channel.getName(), channel.getId());
-        channelMapper.save(channel);
-        return 1;
-    }
-
     public int update(Channel channel){
+
+        //        FabricHelper.obtain().removeManager(channelMapper.list(channel.getPeerId()), chaincodeMapper);
+        Channel entity = channelMapper.findById(channel.getId()).get();
+        channel.setChaincodeCount(entity.getChaincodeCount());
+        channel.setUpdateTime(DateUtil.getCurrent());
+        channel.setCreateTime(entity.getCreateTime());
         channelMapper.save(channel);
         return 1;
     }
@@ -61,7 +59,7 @@ public class ChannelService {
     }
 
 
-    public List<Channel> listById(int peerId) {
+    public List<Channel> listByPeerId(int peerId) {
         return channelMapper.findByPeerId(peerId);
     }
 

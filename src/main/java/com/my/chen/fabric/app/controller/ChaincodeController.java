@@ -8,6 +8,7 @@ import com.my.chen.fabric.app.dto.Api;
 import com.my.chen.fabric.app.dto.State;
 import com.my.chen.fabric.app.dto.Trace;
 import com.my.chen.fabric.app.service.*;
+import com.my.chen.fabric.app.util.DateUtil;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -122,12 +123,12 @@ public class ChaincodeController {
         modelAndView.addObject("intent", "edit");
         Chaincode chaincode = chaincodeService.get(id);
         Peer peer = peerService.get(channelService.get(chaincode.getChannelId()).getPeerId());
-        Org org = orgService.get(peer.getId());
+        Org org = orgService.get(peer.getOrgId());
         League league = leagueService.getById(org.getLeagueId());
         chaincode.setPeerName(peer.getName());
         chaincode.setOrgName(org.getName());
         chaincode.setLeagueName(league.getName());
-        List<Channel> channels = channelService.listById(peer.getId());
+        List<Channel> channels = channelService.listByPeerId(peer.getId());
         for (Channel channel : channels) {
             channel.setPeerName(peer.getName());
             channel.setOrgName(org.getName());
@@ -235,10 +236,16 @@ public class ChaincodeController {
         ModelAndView modelAndView = new ModelAndView("chaincodes");
         List<Chaincode> chaincodes = chaincodeService.listAll();
         for (Chaincode chaincode : chaincodes) {
-            chaincode.setChannelName(peerService.get(chaincode.getChannelId()).getName());
+            chaincode.setChannelName(channelService.get(chaincode.getChannelId()).getName());
         }
         modelAndView.addObject("chaincodes", chaincodes);
         return modelAndView;
+    }
+
+    @GetMapping(value = "del")
+    public ModelAndView delChainCode(@RequestParam("chaincodeId") int chaincodeId){
+        chaincodeService.delete(chaincodeId);
+        return new ModelAndView(new RedirectView("list"));
     }
 
     private List<Channel> getChannelFullList() {
@@ -246,7 +253,7 @@ public class ChaincodeController {
         for (Channel channel : channels) {
             Peer peer = peerService.get(channel.getPeerId());
             channel.setPeerName(peer.getName());
-            Org org = orgService.get(peer.getId());
+            Org org = orgService.get(peer.getOrgId());
             channel.setOrgName(org.getName());
             League league = leagueService.getById(org.getLeagueId());
             channel.setLeagueName(league.getName());

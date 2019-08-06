@@ -94,6 +94,12 @@ public class ChaincodeService implements BaseService {
 
     public int update(Chaincode chaincodeInfo) {
 //        FabricHelper.obtain().removeManager(chaincodeInfo.getId());
+         Chaincode entity = chaincodeMapper.findById(chaincodeInfo.getId()).get();
+
+         chaincodeInfo.setCreateTime(entity.getCreateTime());
+         chaincodeInfo.setUpdateTime(DateUtil.getCurrent());
+         chaincodeInfo.setPolicy(entity.getPolicy());
+         chaincodeInfo.setSource(entity.getSource());
          chaincodeMapper.save(chaincodeInfo);
          return 1;
     }
@@ -125,6 +131,10 @@ public class ChaincodeService implements BaseService {
     }
 
 
+    public int delete(int chaincodeId){
+         chaincodeMapper.deleteById(chaincodeId);
+         return 1;
+    }
 
     private String chainCode(int chaincodeId, OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chainCodeMapper,
                              OrdererMapper ordererMapper, PeerMapper peerMapper, ChainCodeIntent intent, String[] args) {
@@ -152,15 +162,19 @@ public class ChaincodeService implements BaseService {
     }
 
     private boolean verify(Chaincode chaincode) {
+        if(chaincode.getProposalWaitTime() == 0){
+            chaincode.setProposalWaitTime(90000);
+        }
+        if(chaincode.getInvokeWaitTime() ==0){
+            chaincode.setInvokeWaitTime(120);
+        }
         return StringUtils.isEmpty(chaincode.getName()) ||
                 StringUtils.isEmpty(chaincode.getPath()) ||
-                StringUtils.isEmpty(chaincode.getVersion()) ||
-                chaincode.getProposalWaitTime() == 0 ||
-                chaincode.getInvokeWaitTime() == 0;
+                StringUtils.isEmpty(chaincode.getVersion());
     }
 
     private Chaincode check(Chaincode chaincode){
-        Chaincode code = chaincodeMapper.findByNameAndVersionAndChannelId(chaincode.getName(),chaincode.getVersion(),chaincode.getChannelId());
+            Chaincode code = chaincodeMapper.findByNameAndVersionAndChannelId(chaincode.getName(),chaincode.getVersion(),chaincode.getChannelId());
         return code;
     }
 }

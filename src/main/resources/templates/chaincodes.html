@@ -71,7 +71,12 @@
                                         <th>合约名称</th>
                                         <th>通道名称</th>
                                         <th>版本号</th>
-                                        <th>时间</th>
+                                        <th>合约路径</th>
+                                        <th>背书</th>
+                                        <th>是否已安装</th>
+                                        <th>是否已实例化</th>
+                                        <th>创建时间</th>
+                                        <th>更新时间</th>
                                         <th>操作</th>
                                     </tr>
                                     </thead>
@@ -81,18 +86,37 @@
                                         <td th:text="${chaincode.name}">合约名称</td>
                                         <td th:text="${chaincode.channelName}">通道名称</td>
                                         <td th:text="${chaincode.version}">版本号</td>
-                                        <td th:text="${chaincode.date}">时间</td>
+                                        <td th:text="${chaincode.path}">合约路径</td>
+                                        <td th:text="${chaincode.policy}">背书</td>
+                                        <td th:if="${chaincode.installed} eq 1">是</td>
+                                        <td th:if="${chaincode.installed} eq 0">否</td>
+                                        <td th:if="${chaincode.instantiated} eq 1">是</td>
+                                        <td th:if="${chaincode.instantiated} eq 0">否</td>
+                                        <td th:text="${#dates.format(chaincode.createTime, 'yyyy-MM-dd HH:mm:ss')}">
+                                            创建时间
+                                        </td>
+                                        <td th:text="${#dates.format(chaincode.updateTime, 'yyyy-MM-dd HH:mm:ss')}">
+                                            更新时间
+                                        </td>
                                         <td>
                                             <div class="tpl-table-black-operation">
                                                 <a th:href="@{/chaincode/edit(id=${chaincode.id})}">
                                                     <i class="am-icon-pencil"></i> 编辑
                                                 </a>
-                                                <a th:href="@{/chaincode/instantiate(chaincodeId=${chaincode.id})}">
+                                                <a th:if="${chaincode.instantiated} eq 0" th:href="@{/chaincode/instantiate(chaincodeId=${chaincode.id})}">
                                                     <i class="am-icon-pencil"></i> 实例化
                                                 </a>
-                                                <a th:href="@{/chaincode/verify(chaincodeId=${chaincode.id})}" class="tpl-table-black-operation-del">
+                                                <a th:href="@{/chaincode/verify(chaincodeId=${chaincode.id})}"
+                                                   class="tpl-table-black-operation-del">
                                                     <i class="am-icon-trash"></i> 测试
                                                 </a>
+
+                                                <a th:if="${chaincode.installed} eq 0 and ${chaincode.instantiated} eq 0"
+                                                   th:href="@{/chaincode/del(chaincodeId=${chaincode.id})}"
+                                                   class="tpl-table-black-operation-del">
+                                                    <i class="am-icon-trash"></i> 删除
+                                                </a>
+
                                             </div>
                                         </td>
                                     </tr>

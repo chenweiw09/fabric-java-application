@@ -28,9 +28,12 @@ public class LeagueService  {
         return 1;
     }
 
-
+    // 因为提交的时候，只提交了id和名称，所以这里需要查询出对应的实体，然后更新
     public int update(League leagueInfo) {
-        leagueMapper.save(leagueInfo);
+        League entity = leagueMapper.findById(leagueInfo.getId()).get();
+        entity.setUpdateTime(DateUtil.getCurrent());
+        entity.setName(leagueInfo.getName());
+        leagueMapper.save(entity);
         return 1;
     }
 

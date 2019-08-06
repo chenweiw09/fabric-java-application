@@ -22,8 +22,6 @@ public class League implements Serializable {
     @Column
     private int orgCount; // required
 
-    @Column(length = 20)
-    private String date;
 
     @Column
     private long createTime;

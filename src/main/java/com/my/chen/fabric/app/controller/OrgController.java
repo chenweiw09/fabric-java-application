@@ -80,7 +80,6 @@ public class OrgController {
             org.setOrdererCount(orgService.countById(org.getId()));
             org.setPeerCount(peerService.countById(org.getId()));
             org.setLeagueName(leagueService.getById(org.getLeagueId()).getName());
-            org.setDate(DateUtil.getTimeStr(org.getUpdateTime()));
         }
         modelAndView.addObject("orgs", orgs);
         return modelAndView;

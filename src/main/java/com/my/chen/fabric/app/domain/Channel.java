@@ -23,9 +23,6 @@ public class Channel implements Serializable {
     @Column
     private int peerId; // required
 
-    @Column(length = 30)
-    private String date; // optional
-
     @Column
     private String peerName; // optional
 

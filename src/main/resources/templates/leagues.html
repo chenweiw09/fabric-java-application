@@ -65,7 +65,8 @@
                                         <th>ID</th>
                                         <th>联盟名称</th>
                                         <th>组织数量</th>
-                                        <th>时间</th>
+                                        <th>创建时间</th>
+                                        <th>更新时间</th>
                                         <th>操作</th>
                                     </tr>
                                     </thead>
@@ -74,7 +75,8 @@
                                         <td th:text="${league.id}">ID</td>
                                         <td th:text="${league.name}">联盟名称</td>
                                         <td th:text="${league.orgCount}">组织数量</td>
-                                        <td th:text="${league.date}">时间</td>
+                                        <td th:text="${#dates.format(league.createTime, 'yyyy-MM-dd HH:mm:ss')}">创建时间</td>
+                                        <td th:text="${#dates.format(league.updateTime, 'yyyy-MM-dd HH:mm:ss')}">更新时间</td>
                                         <td>
                                             <div class="tpl-table-black-operation">
                                                 <a th:href="@{/league/edit(id=${league.id})}">
