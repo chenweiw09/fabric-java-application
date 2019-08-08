@@ -131,14 +131,14 @@ public class FabricHelper {
         Peer peer = new Peer();
         peer.setName("peer0.org1.test.com");
         peer.setLocation("grpc://peer0.org1.test.com:7051");
-        peer.setEventHubName("peer0.org1.test.com");
+        peer.setEventHubName("eventhub0.org1.test.com");
         peer.setEventHubLocation("grpc://peer0.org1.test.com:7053");
 
 
         Peer peer1 = new Peer();
         peer1.setName("peer1.org1.test.com");
         peer1.setLocation("grpc://peer1.org1.test.com:7051");
-        peer1.setEventHubName("peer1.org1.test.com");
+        peer1.setEventHubName("eventhub1.org1.test.com");
         peer1.setEventHubLocation("grpc://peer1.org1.test.com:7053");
 
         List<Peer> peers = Arrays.asList(peer,peer1);
