@@ -6,6 +6,7 @@ import com.my.chen.fabric.sdk.FbNetworkManager;
 import com.my.chen.fabric.sdk.OrgManager;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -109,7 +110,75 @@ public class FabricHelper {
         return fabricManager;
     }
 
-    private FbNetworkManager createFabricManager(Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers) throws Exception {
+
+
+    // 做测试
+    public static void main(String[] args) {
+
+        Org org = new Org();
+        org.setDomainName("org1.test.com");
+        org.setCryptoConfigDir("C://xiaomi_test/Org1/crypto-config");
+        org.setUsername("admin");
+        org.setMspId("Org1MSP");
+        org.setOrdererDomainName("orderer.test.com");
+        org.setTls(false);
+
+        Orderer orderer = new Orderer();
+        orderer.setName("orderer.test.com");
+        orderer.setLocation("grpc://orderer.test.com:7050");
+        List<Orderer> orderers = Arrays.asList(orderer);
+
+        Peer peer = new Peer();
+        peer.setName("peer0.org1.test.com");
+        peer.setLocation("grpc://peer0.org1.test.com:7051");
+        peer.setEventHubName("peer0.org1.test.com");
+        peer.setEventHubLocation("grpc://peer0.org1.test.com:7053");
+
+
+        Peer peer1 = new Peer();
+        peer1.setName("peer1.org1.test.com");
+        peer1.setLocation("grpc://peer1.org1.test.com:7051");
+        peer1.setEventHubName("peer1.org1.test.com");
+        peer1.setEventHubLocation("grpc://peer1.org1.test.com:7053");
+
+        List<Peer> peers = Arrays.asList(peer,peer1);
+
+
+        Channel channel = new Channel();
+        channel.setName("mychannel");
+        channel.setPeerName(peer.getName());
+        channel.setOrgName(org.getName());
+
+
+        Chaincode chaincode = new Chaincode();
+        chaincode.setName("mycc");
+        chaincode.setSource("/go/path");
+        chaincode.setPath("//");
+        chaincode.setVersion("v1.0");
+        chaincode.setInvokeWaitTime(100000);
+        chaincode.setProposalWaitTime(120);
+
+
+        try {
+            FbNetworkManager manager = createFabricManager(org, channel, chaincode, orderers, peers);
+
+            System.out.println(manager);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+    private static FbNetworkManager createFabricManager(Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers) throws Exception {
         OrgManager orgManager = new OrgManager();
         orgManager
                 .init(org.getId(), org.isTls())
