@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author chenwei
@@ -143,13 +144,13 @@ public class FabricHelper {
         peer.setEventHubLocation("grpc://192.168.235.128:7053");
 
 
-        Peer peer1 = new Peer();
-        peer1.setName("peer1.org1.test.com");
-        peer1.setLocation("grpc://192.168.235.128:8051");
-        peer1.setEventHubName("eventhub1.org1.test.com");
-        peer1.setEventHubLocation("grpc://192.168.235.128:8053");
+//        Peer peer1 = new Peer();
+//        peer1.setName("peer1.org1.test.com");
+//        peer1.setLocation("grpc://192.168.235.128:8051");
+//        peer1.setEventHubName("eventhub1.org1.test.com");
+//        peer1.setEventHubLocation("grpc://192.168.235.128:8053");
 
-        List<Peer> peers = Arrays.asList(peer,peer1);
+        List<Peer> peers = Arrays.asList(peer);
 
 
         Channel channel = new Channel();
@@ -173,19 +174,22 @@ public class FabricHelper {
             List list = manager.getChannelPeers();
             System.out.println(list);
 
-            manager.invoke("query",new String[]{"a"});
+            Collection<org.hyperledger.fabric.sdk.Peer> peers1 = manager.getOrg().getChannel().getChannel().getPeers();
+            List chaincodes  = manager.getOrg().getChannel().getChannel().queryInstantiatedChaincodes(peers1.iterator().next());
 
-            QueryByChaincodeRequest request = manager.getOrg().getClient().getClient().newQueryProposalRequest();
-            ChaincodeID ccid = ChaincodeID.newBuilder().setName(chaincode.getName()).build();
-            request.setChaincodeID(ccid);
-            request.setFcn("query");
-            if (args != null){
-                request.setArgs(args);
-            }
+            System.out.println(chaincodes);
 
-            Collection<ProposalResponse> response = manager.getOrg().getClient().getClient().qu(request);
+            Map<String, String> map = manager.invoke("invoke",new String[]{"a", "b", "20"});
 
-            return response;
+            System.out.println(map);
+//            QueryByChaincodeRequest request = manager.getOrg().getClient().getClient().newQueryProposalRequest();
+//            ChaincodeID ccid = ChaincodeID.newBuilder().setName(chaincode.getName()).build();
+//            request.setChaincodeID(ccid);
+//            request.setFcn("query");
+//            request.setArgs(new String[]{"a"});
+//            Collection<ProposalResponse> response = manager.getOrg().getChannel().getChannel().queryByChaincode(request);
+//
+//            System.out.println(response);
 
             System.out.println(manager);
         } catch (Exception e) {
