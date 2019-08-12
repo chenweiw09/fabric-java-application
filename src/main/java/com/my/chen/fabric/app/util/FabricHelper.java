@@ -5,8 +5,14 @@ import com.my.chen.fabric.app.domain.*;
 import com.my.chen.fabric.sdk.FbNetworkManager;
 import com.my.chen.fabric.sdk.OrgManager;
 import lombok.extern.slf4j.Slf4j;
+import org.hyperledger.fabric.sdk.ChaincodeID;
+import org.hyperledger.fabric.sdk.ProposalResponse;
+import org.hyperledger.fabric.sdk.QueryByChaincodeRequest;
+import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
+import org.hyperledger.fabric.sdk.exception.ProposalException;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -169,14 +175,24 @@ public class FabricHelper {
 
             manager.invoke("query",new String[]{"a"});
 
+            QueryByChaincodeRequest request = manager.getOrg().getClient().getClient().newQueryProposalRequest();
+            ChaincodeID ccid = ChaincodeID.newBuilder().setName(chaincode.getName()).build();
+            request.setChaincodeID(ccid);
+            request.setFcn("query");
+            if (args != null){
+                request.setArgs(args);
+            }
+
+            Collection<ProposalResponse> response = manager.getOrg().getClient().getClient().qu(request);
+
+            return response;
+
             System.out.println(manager);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
-
-
 
 
     private static FbNetworkManager createFabricManager(Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers) throws Exception {

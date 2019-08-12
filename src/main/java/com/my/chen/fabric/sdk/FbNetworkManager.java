@@ -1,5 +1,6 @@
 package com.my.chen.fabric.sdk;
 
+import lombok.Getter;
 import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * @date 2019/8/1
  * @description network manager
  */
+@Getter
 public class FbNetworkManager {
 
     private FbOrg org;
@@ -147,5 +149,7 @@ public class FbNetworkManager {
         Collection<Orderer> orderers = org.getChannel().getChannel().getOrderers();
         return orderers.stream().map(t -> new FbOrderer(t.getName(), t.getUrl())).collect(Collectors.toList());
     }
+
+
 
 }
