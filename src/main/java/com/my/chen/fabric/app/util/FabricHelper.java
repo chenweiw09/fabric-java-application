@@ -117,29 +117,31 @@ public class FabricHelper {
 
         Org org = new Org();
         org.setDomainName("org1.test.com");
-        org.setCryptoConfigDir("C://xiaomi_test/Org1/crypto-config");
+        org.setCryptoConfigDir("C://home/xiaomi/Org1/crypto-config");
         org.setUsername("admin");
         org.setMspId("Org1MSP");
-        org.setOrdererDomainName("orderer.test.com");
+        org.setOrdererDomainName("test.com");
         org.setTls(false);
+        org.setLeagueName("xiaomi");
+        org.setName("org1");
 
         Orderer orderer = new Orderer();
         orderer.setName("orderer.test.com");
-        orderer.setLocation("grpc://orderer.test.com:7050");
+        orderer.setLocation("grpc://192.168.235.128:7050");
         List<Orderer> orderers = Arrays.asList(orderer);
 
         Peer peer = new Peer();
         peer.setName("peer0.org1.test.com");
-        peer.setLocation("grpc://peer0.org1.test.com:7051");
+        peer.setLocation("grpc://192.168.235.128:7051");
         peer.setEventHubName("eventhub0.org1.test.com");
-        peer.setEventHubLocation("grpc://peer0.org1.test.com:7053");
+        peer.setEventHubLocation("grpc://192.168.235.128:7053");
 
 
         Peer peer1 = new Peer();
         peer1.setName("peer1.org1.test.com");
-        peer1.setLocation("grpc://peer1.org1.test.com:7051");
+        peer1.setLocation("grpc://192.168.235.128:8051");
         peer1.setEventHubName("eventhub1.org1.test.com");
-        peer1.setEventHubLocation("grpc://peer1.org1.test.com:7053");
+        peer1.setEventHubLocation("grpc://192.168.235.128:8053");
 
         List<Peer> peers = Arrays.asList(peer,peer1);
 
@@ -153,8 +155,8 @@ public class FabricHelper {
         Chaincode chaincode = new Chaincode();
         chaincode.setName("mycc");
         chaincode.setSource("/go/path");
-        chaincode.setPath("//");
-        chaincode.setVersion("v1.0");
+        chaincode.setPath("github.com/chaincode/chaincode_example02/go/");
+        chaincode.setVersion("1.0");
         chaincode.setInvokeWaitTime(100000);
         chaincode.setProposalWaitTime(120);
 
@@ -162,18 +164,17 @@ public class FabricHelper {
         try {
             FbNetworkManager manager = createFabricManager(org, channel, chaincode, orderers, peers);
 
+            List list = manager.getChannelPeers();
+            System.out.println(list);
+
+            manager.invoke("query",new String[]{"a"});
+
             System.out.println(manager);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
-
-
-
-
-
-
 
 
 

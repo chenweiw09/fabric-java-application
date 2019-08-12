@@ -1,5 +1,7 @@
 package com.my.chen.fabric.sdk;
 
+import org.hyperledger.fabric.sdk.Orderer;
+import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
@@ -7,10 +9,12 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * @author chenwei
@@ -130,4 +134,18 @@ public class FbNetworkManager {
     public Map<String, String> getBlockchainInfo() throws ProposalException, InvalidArgumentException {
         return org.getChannel().getBlockchainInfo();
     }
+
+    /**
+     * 获取channel上的peer节点信息
+     */
+    public List<FbPeer> getChannelPeers(){
+        Collection<Peer> peers = org.getChannel().getChannel().getPeers();
+        return peers.stream().map(t -> new FbPeer(t.getName(), t.getUrl(), null, null, false)).collect(Collectors.toList());
+    }
+
+    public List<FbOrderer> getChannelOrderers(){
+        Collection<Orderer> orderers = org.getChannel().getChannel().getOrderers();
+        return orderers.stream().map(t -> new FbOrderer(t.getName(), t.getUrl())).collect(Collectors.toList());
+    }
+
 }
