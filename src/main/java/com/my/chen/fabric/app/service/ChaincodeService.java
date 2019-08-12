@@ -5,7 +5,9 @@ import com.google.common.collect.Lists;
 import com.my.chen.fabric.app.dao.*;
 import com.my.chen.fabric.app.domain.Chaincode;
 import com.my.chen.fabric.app.util.DateUtil;
+import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.app.util.FileUtil;
+import com.my.chen.fabric.sdk.FbNetworkManager;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -93,7 +95,7 @@ public class ChaincodeService implements BaseService {
 
 
     public int update(Chaincode chaincodeInfo) {
-//        FabricHelper.obtain().removeManager(chaincodeInfo.getId());
+        FabricHelper.getInstance().removeManager(chaincodeInfo.getId());
          Chaincode entity = chaincodeMapper.findById(chaincodeInfo.getId()).get();
 
          chaincodeInfo.setCreateTime(entity.getCreateTime());
@@ -140,16 +142,16 @@ public class ChaincodeService implements BaseService {
                              OrdererMapper ordererMapper, PeerMapper peerMapper, ChainCodeIntent intent, String[] args) {
         Map<String, String> resultMap = new HashMap<>();
         try {
-//            FabricManager manager = FabricHelper.obtain().get(orgMapper, channelMapper, chainCodeMapper, ordererMapper, peerMapper,
-//                    chaincodeId);
-//            switch (intent) {
-//                case INSTALL:
-//                    resultMap = manager.install();
-//                    break;
-//                case INSTANTIATE:
-//                    resultMap = manager.instantiate(args);
-//                    break;
-//            }
+            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chainCodeMapper, ordererMapper, peerMapper,
+                    chaincodeId);
+            switch (intent) {
+                case INSTALL:
+                    resultMap = manager.install();
+                    break;
+                case INSTANTIATE:
+                    resultMap = manager.instantiate(args);
+                    break;
+            }
             if (resultMap.get("code").equals("error")) {
                 return responseFail(resultMap.get("data"));
             } else {

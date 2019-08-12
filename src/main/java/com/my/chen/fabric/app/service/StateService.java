@@ -2,6 +2,8 @@ package com.my.chen.fabric.app.service;
 
 import com.my.chen.fabric.app.dao.*;
 import com.my.chen.fabric.app.dto.State;
+import com.my.chen.fabric.app.util.FabricHelper;
+import com.my.chen.fabric.sdk.FbNetworkManager;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -57,16 +59,16 @@ public class StateService implements BaseService {
         }
         Map<String, String> resultMap = new HashMap<>();
         try {
-//            FabricManager manager = FabricHelper.obtain().get(orgMapper, channelMapper, chainCodeMapper, ordererMapper, peerMapper,
-//                    state.getId());
-//            switch (intent) {
-//                case INVOKE:
-//                    resultMap = manager.invoke(fcn, argArray);
-//                    break;
-//                case QUERY:
-//                    resultMap = manager.query(fcn, argArray);
-//                    break;
-//            }
+            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chainCodeMapper, ordererMapper, peerMapper,
+                    state.getId());
+            switch (intent) {
+                case INVOKE:
+                    resultMap = manager.invoke(fcn, argArray);
+                    break;
+                case QUERY:
+                    resultMap = manager.query(fcn, argArray);
+                    break;
+            }
             if (resultMap.get("code").equals("error")) {
                 return responseFail(resultMap.get("data"));
             } else {

@@ -3,6 +3,9 @@ package com.my.chen.fabric.app.service;
 import com.alibaba.fastjson.JSONObject;
 import com.my.chen.fabric.app.dao.*;
 import com.my.chen.fabric.app.dto.Trace;
+import com.my.chen.fabric.app.util.FabricHelper;
+import com.my.chen.fabric.sdk.FbNetworkManager;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -53,22 +56,22 @@ public class TraceService implements BaseService {
                          OrdererMapper ordererMapper, PeerMapper peerMapper, TraceIntent intent) {
         Map<String, String> resultMap = null;
         try {
-//            FabricManager manager = FabricHelper.obtain().get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper,
-//                    trace.getId());
-//            switch (intent) {
-//                case TRANSACTION:
-//                    resultMap = manager.queryBlockByTransactionID(trace.getTrace());
-//                    break;
-//                case HASH:
-//                    resultMap = manager.queryBlockByHash(Hex.decodeHex(trace.getTrace().toCharArray()));
-//                    break;
-//                case NUMBER:
-//                    resultMap = manager.queryBlockByNumber(Long.valueOf(trace.getTrace()));
-//                    break;
-//                case INFO:
-//                    resultMap = manager.getBlockchainInfo();
-//                    break;
-//            }
+            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper,
+                    trace.getId());
+            switch (intent) {
+                case TRANSACTION:
+                    resultMap = manager.queryBlockByTransactionID(trace.getTrace());
+                    break;
+                case HASH:
+                    resultMap = manager.queryBlockByHash(Hex.decodeHex(trace.getTrace().toCharArray()));
+                    break;
+                case NUMBER:
+                    resultMap = manager.queryBlockByNumber(Long.valueOf(trace.getTrace()));
+                    break;
+                case INFO:
+                    resultMap = manager.getBlockchainInfo();
+                    break;
+            }
             return responseSuccess(JSONObject.parseObject(resultMap.get("data")));
         } catch (Exception e) {
             e.printStackTrace();

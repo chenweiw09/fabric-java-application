@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.my.chen.fabric.app.dao.*;
 import com.my.chen.fabric.app.domain.Org;
 import com.my.chen.fabric.app.util.DateUtil;
+import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.app.util.FileUtil;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -79,7 +80,7 @@ public class OrgService  {
                 return 0;
             }
         }
-//        FabricHelper.obtain().removeManager(peerMapper.list(org.getId()), channelMapper, chaincodeMapper);
+        FabricHelper.getInstance().removeManager(peerMapper.findByOrgId(org.getId()), channelMapper, chaincodeMapper);
 
         // 同样的道理，org中更新的数据仅包括修改的字段信息
         Org entity = orgMapper.findById(org.getId()).get();

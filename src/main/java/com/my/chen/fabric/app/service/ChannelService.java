@@ -5,6 +5,7 @@ import com.my.chen.fabric.app.dao.ChaincodeMapper;
 import com.my.chen.fabric.app.dao.ChannelMapper;
 import com.my.chen.fabric.app.domain.Channel;
 import com.my.chen.fabric.app.util.DateUtil;
+import com.my.chen.fabric.app.util.FabricHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -42,9 +43,9 @@ public class ChannelService {
     }
 
 
-    public int update(Channel channel){
+    public int update(Channel channel) {
 
-        //        FabricHelper.obtain().removeManager(channelMapper.list(channel.getPeerId()), chaincodeMapper);
+        FabricHelper.getInstance().removeManager(channelMapper.findByPeerId(channel.getPeerId()), chaincodeMapper);
         Channel entity = channelMapper.findById(channel.getId()).get();
         channel.setChaincodeCount(entity.getChaincodeCount());
         channel.setUpdateTime(DateUtil.getCurrent());

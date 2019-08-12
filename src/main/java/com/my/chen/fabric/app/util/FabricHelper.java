@@ -120,86 +120,86 @@ public class FabricHelper {
 
 
     // 做测试
-    public static void main(String[] args) {
-
-        Org org = new Org();
-        org.setDomainName("org1.test.com");
-        org.setCryptoConfigDir("C://home/xiaomi/Org1/crypto-config");
-        org.setUsername("admin");
-        org.setMspId("Org1MSP");
-        org.setOrdererDomainName("test.com");
-        org.setTls(false);
-        org.setLeagueName("xiaomi");
-        org.setName("org1");
-
-        Orderer orderer = new Orderer();
-        orderer.setName("orderer.test.com");
-        orderer.setLocation("grpc://192.168.235.128:7050");
-        List<Orderer> orderers = Arrays.asList(orderer);
-
-        Peer peer = new Peer();
-        peer.setName("peer0.org1.test.com");
-        peer.setLocation("grpc://192.168.235.128:7051");
-        peer.setEventHubName("eventhub0.org1.test.com");
-        peer.setEventHubLocation("grpc://192.168.235.128:7053");
-
-
-//        Peer peer1 = new Peer();
-//        peer1.setName("peer1.org1.test.com");
-//        peer1.setLocation("grpc://192.168.235.128:8051");
-//        peer1.setEventHubName("eventhub1.org1.test.com");
-//        peer1.setEventHubLocation("grpc://192.168.235.128:8053");
-
-        List<Peer> peers = Arrays.asList(peer);
-
-
-        Channel channel = new Channel();
-        channel.setName("mychannel");
-        channel.setPeerName(peer.getName());
-        channel.setOrgName(org.getName());
-
-
-        Chaincode chaincode = new Chaincode();
-        chaincode.setName("mycc");
-        chaincode.setSource("/go/path");
-        chaincode.setPath("github.com/chaincode/chaincode_example02/go/");
-        chaincode.setVersion("1.0");
-        chaincode.setInvokeWaitTime(100000);
-        chaincode.setProposalWaitTime(120);
-
-
-        try {
-            FbNetworkManager manager = createFabricManager(org, channel, chaincode, orderers, peers);
-
-            List list = manager.getChannelPeers();
-            System.out.println(list);
-
-            Collection<org.hyperledger.fabric.sdk.Peer> peers1 = manager.getOrg().getChannel().getChannel().getPeers();
-            List chaincodes  = manager.getOrg().getChannel().getChannel().queryInstantiatedChaincodes(peers1.iterator().next());
-
-            System.out.println(chaincodes);
-
-            Map<String, String> map = manager.invoke("invoke",new String[]{"a", "b", "20"});
-
-            System.out.println(map);
-//            QueryByChaincodeRequest request = manager.getOrg().getClient().getClient().newQueryProposalRequest();
-//            ChaincodeID ccid = ChaincodeID.newBuilder().setName(chaincode.getName()).build();
-//            request.setChaincodeID(ccid);
-//            request.setFcn("query");
-//            request.setArgs(new String[]{"a"});
-//            Collection<ProposalResponse> response = manager.getOrg().getChannel().getChannel().queryByChaincode(request);
+//    public static void main(String[] args) {
 //
-//            System.out.println(response);
+//        Org org = new Org();
+//        org.setDomainName("org1.test.com");
+//        org.setCryptoConfigDir("C://home/xiaomi/Org1/crypto-config");
+//        org.setUsername("admin");
+//        org.setMspId("Org1MSP");
+//        org.setOrdererDomainName("test.com");
+//        org.setTls(false);
+//        org.setLeagueName("xiaomi");
+//        org.setName("org1");
+//
+//        Orderer orderer = new Orderer();
+//        orderer.setName("orderer.test.com");
+//        orderer.setLocation("grpc://192.168.235.128:7050");
+//        List<Orderer> orderers = Arrays.asList(orderer);
+//
+//        Peer peer = new Peer();
+//        peer.setName("peer0.org1.test.com");
+//        peer.setLocation("grpc://192.168.235.128:7051");
+//        peer.setEventHubName("eventhub0.org1.test.com");
+//        peer.setEventHubLocation("grpc://192.168.235.128:7053");
+//
+//
+////        Peer peer1 = new Peer();
+////        peer1.setName("peer1.org1.test.com");
+////        peer1.setLocation("grpc://192.168.235.128:8051");
+////        peer1.setEventHubName("eventhub1.org1.test.com");
+////        peer1.setEventHubLocation("grpc://192.168.235.128:8053");
+//
+//        List<Peer> peers = Arrays.asList(peer);
+//
+//
+//        Channel channel = new Channel();
+//        channel.setName("mychannel");
+//        channel.setPeerName(peer.getName());
+//        channel.setOrgName(org.getName());
+//
+//
+//        Chaincode chaincode = new Chaincode();
+//        chaincode.setName("mycc");
+//        chaincode.setSource("/go/path");
+//        chaincode.setPath("github.com/chaincode/chaincode_example02/go/");
+//        chaincode.setVersion("1.0");
+//        chaincode.setInvokeWaitTime(100000);
+//        chaincode.setProposalWaitTime(120);
+//
+//
+//        try {
+//            FbNetworkManager manager = createFabricManager(org, channel, chaincode, orderers, peers);
+//
+//            List list = manager.getChannelPeers();
+//            System.out.println(list);
+//
+//            Collection<org.hyperledger.fabric.sdk.Peer> peers1 = manager.getOrg().getChannel().getChannel().getPeers();
+//            List chaincodes  = manager.getOrg().getChannel().getChannel().queryInstantiatedChaincodes(peers1.iterator().next());
+//
+//            System.out.println(chaincodes);
+//
+//            Map<String, String> map = manager.invoke("invoke",new String[]{"a", "b", "20"});
+//
+//            System.out.println(map);
+////            QueryByChaincodeRequest request = manager.getOrg().getClient().getClient().newQueryProposalRequest();
+////            ChaincodeID ccid = ChaincodeID.newBuilder().setName(chaincode.getName()).build();
+////            request.setChaincodeID(ccid);
+////            request.setFcn("query");
+////            request.setArgs(new String[]{"a"});
+////            Collection<ProposalResponse> response = manager.getOrg().getChannel().getChannel().queryByChaincode(request);
+////
+////            System.out.println(response);
+//
+//            System.out.println(manager);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
 
-            System.out.println(manager);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-    }
-
-
-    private static FbNetworkManager createFabricManager(Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers) throws Exception {
+    private FbNetworkManager createFabricManager(Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers) throws Exception {
         OrgManager orgManager = new OrgManager();
         orgManager
                 .init(org.getId(), org.isTls())
@@ -209,8 +209,8 @@ public class FabricHelper {
                 .setChannel(channel.getName())
                 .setChainCode(chainCode.getName(), chainCode.getPath(), chainCode.getSource(), chainCode.getPolicy(), chainCode.getVersion(), chainCode.getProposalWaitTime(), chainCode.getInvokeWaitTime())
                 .setBlockListener(map -> {
-                    log.info(map.get("code"));
-                    log.info(map.get("data"));
+                    log.info("----------------------"+map.get("code"));
+                    log.info("----------------------"+map.get("data"));
                 });
         for (Orderer orderer : orderers) {
             orgManager.addOrderer(orderer.getName(), orderer.getLocation());

@@ -6,6 +6,7 @@ import com.my.chen.fabric.app.dao.ChannelMapper;
 import com.my.chen.fabric.app.dao.PeerMapper;
 import com.my.chen.fabric.app.domain.Peer;
 import com.my.chen.fabric.app.util.DateUtil;
+import com.my.chen.fabric.app.util.FabricHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -36,7 +37,7 @@ public class PeerService {
 
 
     public int update(Peer peer) {
-//        FabricHelper.obtain().removeManager(peerMapper.list(peer.getOrgId()), channelMapper, chaincodeMapper);
+        FabricHelper.getInstance().removeManager(peerMapper.findByOrgId(peer.getOrgId()), channelMapper, chaincodeMapper);
         Peer entity = peerMapper.findById(peer.getId()).get();
         peer.setChannelCount(entity.getChannelCount());
         peer.setUpdateTime(DateUtil.getCurrent());
