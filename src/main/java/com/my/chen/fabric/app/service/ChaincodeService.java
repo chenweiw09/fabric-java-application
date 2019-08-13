@@ -1,6 +1,7 @@
 package com.my.chen.fabric.app.service;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.my.chen.fabric.app.dao.*;
 import com.my.chen.fabric.app.domain.Chaincode;
@@ -73,14 +74,24 @@ public class ChaincodeService implements BaseService {
         chaincode.setCreateTime(DateUtil.getCurrent());
         chaincode.setUpdateTime(DateUtil.getCurrent());
         try {
-            FileUtil.unZipAndSave(file, String.format("%s%ssrc", chaincodeSource, File.separator), childrenPath);
+            FileUtil.chaincodeUnzipAndSave(file, String.format("%s%ssrc", chaincodeSource, File.separator), childrenPath);
         } catch (IOException e) {
             e.printStackTrace();
             return responseFail("source unzip fail");
         }
         chaincodeMapper.save(chaincode);
         chaincode.setId(check(chaincode).getId());
-        return chainCode(chaincode.getId(), orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.INSTALL, new String[]{});
+        String installedMsg = chainCode(chaincode.getId(), orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.INSTALL, new String[]{});
+
+        JSONObject obj = JSONObject.parseObject(installedMsg);
+        if(SUCCESS != obj.getIntValue("code")){
+            chaincodeMapper.deleteById(chaincode.getId());
+        }else {
+            chaincode.setInstalled(1);
+            chaincodeMapper.save(chaincode);
+        }
+
+        return installedMsg;
     }
 
 
@@ -88,9 +99,16 @@ public class ChaincodeService implements BaseService {
         int size = strArray.size();
         String[] args = new String[size];
         for (int i = 0; i < size; i++) {
-            args[i] = strArray.get(i);
+            args[i] = strArray.get(i).trim();
         }
-        return chainCode(chaincodeInfo.getId(), orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.INSTANTIATE, args);
+        String instantiatedMsg = chainCode(chaincodeInfo.getId(), orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.INSTANTIATE, args);
+
+        JSONObject obj = JSONObject.parseObject(instantiatedMsg);
+        if(SUCCESS == obj.getIntValue("code")){
+            chaincodeInfo.setInstantiated(1);
+            chaincodeMapper.save(chaincodeInfo);
+        }
+        return instantiatedMsg;
     }
 
 

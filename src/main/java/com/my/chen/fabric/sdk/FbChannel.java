@@ -1,5 +1,6 @@
 package com.my.chen.fabric.sdk;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.my.chen.fabric.app.util.DateUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +10,6 @@ import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
-import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,7 +178,8 @@ public class FbChannel {
      * @param blockNumber 区块高度
      */
     Map<String, String> queryBlockByNumber(long blockNumber) throws InvalidArgumentException, ProposalException, IOException {
-        return execBlockInfo(channel.queryBlockByNumber(blockNumber));
+        Map<String, String> map = execBlockInfo(channel.queryBlockByNumber(blockNumber));
+        return map;
     }
 
     /**
@@ -267,14 +268,14 @@ public class FbChannel {
                         log.debug("Endorser " + n + " signature: " + signature);
                         log.debug("Endorser " + n + " id: " + id);
                         log.debug("Endorser " + n + " mspId: " + mspId);
-                        endorserInfoJsonArray.put(endorserInfoJson);
+                        endorserInfoJsonArray.add(endorserInfoJson);
                     }
                     transactionActionInfoJson.put("endorserInfoArray", endorserInfoJsonArray);
 
                     log.debug("Transaction action " + i + " has " + chaincodeInputArgsCount + " chaincode input arguments");
                     JSONArray argJsonArray = new JSONArray();
                     for (int z = 0; z < chaincodeInputArgsCount; ++z) {
-                        argJsonArray.put(printableString(new String(txInfo.getChaincodeInputArgs(z), "UTF-8")));
+                        argJsonArray.add(printableString(new String(txInfo.getChaincodeInputArgs(z), "UTF-8")));
                         log.debug("Transaction action " + i + " has chaincode input argument " + z + "is: " + printableString(new String(txInfo.getChaincodeInputArgs(z), "UTF-8")));
                     }
                     transactionActionInfoJson.put("argArray", argJsonArray);
@@ -309,7 +310,7 @@ public class FbChannel {
                                 readInfoJson.put("readVersionBlockNum", readVersionBlockNum);
                                 readInfoJson.put("readVersionTxNum", readVersionTxNum);
                                 readInfoJson.put("version", String.format("[%s : %s]", readVersionBlockNum, readVersionTxNum));
-                                readJsonArray.put(readInfoJson);
+                                readJsonArray.add(readInfoJson);
                                 log.debug("Namespace " + namespace + " read set " + rs + " key " + key + " version [" + readVersionBlockNum + " : " + readVersionTxNum + "]");
                             }
                             nsRwsetInfoJson.put("readSet", readJsonArray);
@@ -325,24 +326,24 @@ public class FbChannel {
                                 writeInfoJson.put("writeSetIndex", rs);
                                 writeInfoJson.put("key", key);
                                 writeInfoJson.put("value", valAsString);
-                                writeJsonArray.put(writeInfoJson);
+                                writeJsonArray.add(writeInfoJson);
                                 log.debug("Namespace " + namespace + " write set " + rs + " key " + key + " has value " + valAsString);
                             }
                             nsRwsetInfoJson.put("writeSet", writeJsonArray);
-                            nsRwsetInfoJsonArray.put(nsRwsetInfoJson);
+                            nsRwsetInfoJsonArray.add(nsRwsetInfoJson);
                         }
                         rwsetInfoJson.put("nsRwsetInfoArray", nsRwsetInfoJsonArray);
                     }
                     transactionActionInfoJson.put("rwsetInfo", rwsetInfoJson);
-                    transactionActionInfoJsonArray.put(transactionActionInfoJson);
+                    transactionActionInfoJsonArray.add(transactionActionInfoJson);
                 }
                 transactionEnvelopeInfoJson.put("transactionActionInfoArray", transactionActionInfoJsonArray);
                 envelopeJson.put("transactionEnvelopeInfo", transactionEnvelopeInfoJson);
             }
-            envelopeJsonArray.put(envelopeJson);
+            envelopeJsonArray.add(envelopeJson);
         }
         blockJson.put("envelopes", envelopeJsonArray);
-        return getSuccessFromString(blockJson.toString());
+        return getSuccessFromString(blockJson.toJSONString());
     }
 
 

@@ -119,7 +119,6 @@ public class FabricHelper {
 
 
 
-    // 做测试
 //    public static void main(String[] args) {
 //
 //        Org org = new Org();
@@ -144,11 +143,11 @@ public class FabricHelper {
 //        peer.setEventHubLocation("grpc://192.168.235.128:7053");
 //
 //
-////        Peer peer1 = new Peer();
-////        peer1.setName("peer1.org1.test.com");
-////        peer1.setLocation("grpc://192.168.235.128:8051");
-////        peer1.setEventHubName("eventhub1.org1.test.com");
-////        peer1.setEventHubLocation("grpc://192.168.235.128:8053");
+//        Peer peer1 = new Peer();
+//        peer1.setName("peer1.org1.test.com");
+//        peer1.setLocation("grpc://192.168.235.128:8051");
+//        peer1.setEventHubName("eventhub1.org1.test.com");
+//        peer1.setEventHubLocation("grpc://192.168.235.128:8053");
 //
 //        List<Peer> peers = Arrays.asList(peer);
 //
@@ -179,7 +178,7 @@ public class FabricHelper {
 //
 //            System.out.println(chaincodes);
 //
-//            Map<String, String> map = manager.invoke("invoke",new String[]{"a", "b", "20"});
+//            Map<String, String> map = manager.invoke("query",new String[]{"a"});
 //
 //            System.out.println(map);
 ////            QueryByChaincodeRequest request = manager.getOrg().getClient().getClient().newQueryProposalRequest();
@@ -199,7 +198,7 @@ public class FabricHelper {
 //    }
 
 
-    private FbNetworkManager createFabricManager(Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers) throws Exception {
+    private static FbNetworkManager createFabricManager(Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers) throws Exception {
         OrgManager orgManager = new OrgManager();
         orgManager
                 .init(org.getId(), org.isTls())

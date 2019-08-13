@@ -1,8 +1,8 @@
 package com.my.chen.fabric.app.service;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import org.json.JSONException;
 
 
 public interface BaseService {

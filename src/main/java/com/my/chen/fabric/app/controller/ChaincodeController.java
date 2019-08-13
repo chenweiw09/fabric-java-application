@@ -63,7 +63,7 @@ public class ChaincodeController {
             case "install":
                 Channel channel = channelService.get(chaincode.getChannelId());
                 Peer peer = peerService.get(channel.getPeerId());
-                Org org = orgService.get(peer.getId());
+                Org org = orgService.get(peer.getOrgId());
                 League league = leagueService.getById(org.getLeagueId());
                 chaincode.setLeagueName(league.getName());
                 chaincode.setOrgName(org.getName());
@@ -104,7 +104,7 @@ public class ChaincodeController {
         Chaincode chaincode = chaincodeService.get(id);
         Channel channel = channelService.get(chaincode.getChannelId());
         Peer peer = peerService.get(channel.getPeerId());
-        Org org = orgService.get(peer.getId());
+        Org org = orgService.get(peer.getOrgId());
         League league = leagueService.getById(org.getLeagueId());
         chaincode.setLeagueName(league.getName());
         chaincode.setOrgName(org.getName());
@@ -264,7 +264,9 @@ public class ChaincodeController {
     private State getState(int id, Api api) {
         State state = new State();
         state.setId(id);
-        state.setStrArray(Arrays.asList(api.exec.trim().split(",")));
+
+        String[] str = api.exec.trim().replaceAll("\\[","").replaceAll("\\]","").split(",");
+        state.setStrArray(Arrays.asList(str));
         return state;
     }
 

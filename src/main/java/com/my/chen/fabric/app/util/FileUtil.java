@@ -22,7 +22,7 @@ public class FileUtil {
      * @param unZipFile 压缩文件的路径
      * @param destFile  解压到的目录
      */
-    private static void unZip(String unZipFile, String destFile) {
+    private static void unZip(String unZipFile, String destFile, boolean policy) {
         FileOutputStream fileOut;
         File file;
         InputStream inputStream;
@@ -33,7 +33,11 @@ public class FileUtil {
             Enumeration enumeration = zipFile.entries();
             while (enumeration.hasMoreElements()) {
                 ZipEntry entry = (ZipEntry) enumeration.nextElement();
-                file = new File(destFile + File.separator + entry.getName());
+                if(entry.getName().contains(".yaml") && policy){
+                    file = new File(destFile + File.separator + "policy.yaml");
+                }else {
+                    file = new File(destFile + File.separator + entry.getName());
+                }
                 if (entry.isDirectory()) {
                     file.mkdirs();
                 } else {
@@ -64,16 +68,56 @@ public class FileUtil {
 
     public static void unZipAndSave(MultipartFile file, String parentPath, String childrenPath) throws IOException {
         String fileName = file.getOriginalFilename();
-        File dest = new File(parentPath + "/" + fileName);
+        File dest = new File(parentPath + File.separator + fileName);
         File childrenFile = new File(childrenPath);
-        if (childrenFile.exists()) { // 判断文件父目录是否存在
+        if (childrenFile.exists()) {
             deleteFiles(childrenPath);
         }
         childrenFile.mkdirs();
-        file.transferTo(dest); //保存文件
-        unZip(String.format("%s/%s", parentPath, fileName), parentPath);
+
+        //缓存临时文件
+        file.transferTo(dest);
+        String str1 = dest.getAbsolutePath();
+        String destFileFolder = str1.substring(0, str1.lastIndexOf("."));
+        unZip(String.format("%s" + File.separator + "%s", parentPath, fileName), destFileFolder, false);
         dest.delete();
     }
+
+    public static void chaincodeUnzipAndSave(MultipartFile file, String parentPath, String childrenPath) throws IOException {
+        String fileName = file.getOriginalFilename();
+        File dest = new File(parentPath + File.separator + fileName);
+        File childrenFile = new File(childrenPath);
+        if (childrenFile.exists()) {
+            deleteFiles(childrenPath);
+        }
+        childrenFile.mkdirs();
+
+        //缓存临时文件
+        file.transferTo(dest);
+        String str1 = dest.getAbsolutePath();
+        String destFileFolder = str1.substring(0, str1.lastIndexOf("."));
+
+        checkPolicyYaml(String.format("%s" + File.separator + "%s", parentPath, fileName));
+
+        unZip(String.format("%s" + File.separator + "%s", parentPath, fileName), destFileFolder, true);
+        dest.delete();
+    }
+
+
+    private static void checkPolicyYaml(String unZipFile) throws IOException {
+        // check hash policy.yaml
+        ZipFile zipFile = new ZipFile(unZipFile);
+        Enumeration enumeration = zipFile.entries();
+        while (enumeration.hasMoreElements()) {
+            ZipEntry entry = (ZipEntry) enumeration.nextElement();
+            if (entry.getName().contains(".yaml")) {
+                return;
+            }
+        }
+        throw new RuntimeException("chain code file must has policy yaml");
+    }
+
+
 
     /**
      * 通过递归得到某一路径下所有的目录及其文件并删除所有文件

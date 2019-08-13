@@ -52,9 +52,9 @@ public class StateService implements BaseService {
         String[] argArray = new String[length - 1];
         for (int i = 0; i < length; i++) {
             if (i == 0) {
-                fcn = array.get(i);
+                fcn = array.get(i).trim();
             } else {
-                argArray[i - 1] = array.get(i);
+                argArray[i - 1] = array.get(i).trim();
             }
         }
         Map<String, String> resultMap = new HashMap<>();

@@ -42,6 +42,8 @@ public class CommonController {
     @Resource
     private TraceService traceService;
 
+    private static final String SUCCESS_CODE = "200";
+
     @GetMapping(value = "index")
     public ModelAndView index() {
         ModelAndView modelAndView = new ModelAndView("index");
@@ -72,18 +74,8 @@ public class CommonController {
                         trace.setId(chaincode.getId());
                         trace.setTrace(String.valueOf(num));
                         JSONObject blockMessage = JSON.parseObject(traceService.queryBlockByNumber(trace));
-                        JSONArray envelopes = blockMessage.getJSONObject("data").getJSONArray("envelopes");
-                        int size = envelopes.size();
-                        for (int i = 0; i < size; i++) {
-                            Transaction transaction = new Transaction();
-                            transaction.setNum(num);
-                            JSONObject envelope = envelopes.getJSONObject(i);
-                            transaction.setTxCount(envelope.getJSONObject("transactionEnvelopeInfo").getInteger("txCount"));
-                            transaction.setChannelName(envelope.getString("channelId"));
-                            transaction.setCreateMSPID(envelope.getString("createMSPID"));
-                            transaction.setDate(envelope.getString("timestamp"));
-                            tmpTransactions.add(transaction);
-                        }
+                        getTmpTransactions(blockMessage, tmpTransactions);
+
                         if ((height - num) > 6) {
                             break;
                         }
@@ -94,7 +86,6 @@ public class CommonController {
                 }
             }
         }
-        // transactions.sort(Comparator.comparing(Transaction::getDate));
         tmpTransactions.sort((t1, t2) -> {
             try {
                 long td1 = DateUtil.str2Date(t1.getDate(), "yyyy/MM/dd HH:mm:ss").getTime();
@@ -120,5 +111,31 @@ public class CommonController {
         modelAndView.addObject("transactions", transactions);
 
         return modelAndView;
+    }
+
+
+
+    private void getTmpTransactions(JSONObject blockMessage, List<Transaction> tmpTransactions){
+
+        if(SUCCESS_CODE.equals(blockMessage.getString("code"))){
+            JSONObject data = blockMessage.getJSONObject("data");
+            int blockNum = Integer.valueOf(data.getString("blockNumber"));
+            JSONArray envelopes = data.getJSONArray("envelopes");
+
+            int size = envelopes.size();
+
+            for (int i = 0; i < size; i++) {
+                Transaction transaction = new Transaction();
+                transaction.setNum(blockNum);
+                JSONObject envelope = envelopes.getJSONObject(i);
+                transaction.setTxCount(envelope.getJSONObject("transactionEnvelopeInfo").getInteger("txCount"));
+                transaction.setChannelName(envelope.getString("channelId"));
+                transaction.setCreateMSPID(envelope.getString("createMSPID"));
+                transaction.setDate(envelope.getString("timestamp"));
+                tmpTransactions.add(transaction);
+            }
+
+
+        }
     }
 }

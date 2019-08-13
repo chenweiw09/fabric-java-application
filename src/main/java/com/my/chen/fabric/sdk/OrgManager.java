@@ -125,6 +125,7 @@ public class OrgManager {
         // java.io.tmpdir : C:\Users\aberic\AppData\Local\Temp\
 
         File storeFile = new File(String.format("%s/HFCStore%s.properties", System.getProperty("java.io.tmpdir"), orgId));
+
         FbStore fabricStore = new FbStore(storeFile);
         org.init(fabricStore);
         org.setClient(new FbClient(org.getUser()));
