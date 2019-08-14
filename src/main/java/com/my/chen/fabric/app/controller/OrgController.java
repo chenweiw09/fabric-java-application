@@ -2,6 +2,7 @@ package com.my.chen.fabric.app.controller;
 
 import com.my.chen.fabric.app.domain.Org;
 import com.my.chen.fabric.app.service.LeagueService;
+import com.my.chen.fabric.app.service.OrdererService;
 import com.my.chen.fabric.app.service.OrgService;
 import com.my.chen.fabric.app.service.PeerService;
 import com.my.chen.fabric.app.util.DateUtil;
@@ -30,6 +31,9 @@ public class OrgController {
     private LeagueService leagueService;
     @Resource
     private PeerService peerService;
+
+    @Resource
+    private OrdererService ordererService;
 
     @PostMapping(value = "submit")
     public ModelAndView submit(@ModelAttribute Org org,
@@ -77,7 +81,7 @@ public class OrgController {
         ModelAndView modelAndView = new ModelAndView("orgs");
         List<Org> orgs = new ArrayList<>(orgService.listAll());
         for (Org org : orgs) {
-            org.setOrdererCount(orgService.countById(org.getId()));
+            org.setOrdererCount(ordererService.countByOrgId(org.getId()));
             org.setPeerCount(peerService.countById(org.getId()));
             org.setLeagueName(leagueService.getById(org.getLeagueId()).getName());
         }

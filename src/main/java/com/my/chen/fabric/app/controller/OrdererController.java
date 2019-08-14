@@ -88,6 +88,12 @@ public class OrdererController {
         return modelAndView;
     }
 
+    @GetMapping(value = "del")
+    public ModelAndView delOrderer(@RequestParam("id") int id){
+        ordererService.del(id);
+        return new ModelAndView(new RedirectView("list"));
+    }
+
     private List<Org> getForPeerAndOrderer() {
         List<Org> orgs = orgService.listAll();
         for (Org org : orgs) {

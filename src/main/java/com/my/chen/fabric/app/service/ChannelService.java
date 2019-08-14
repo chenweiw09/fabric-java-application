@@ -3,11 +3,13 @@ package com.my.chen.fabric.app.service;
 import com.google.common.collect.Lists;
 import com.my.chen.fabric.app.dao.ChaincodeMapper;
 import com.my.chen.fabric.app.dao.ChannelMapper;
+import com.my.chen.fabric.app.domain.Chaincode;
 import com.my.chen.fabric.app.domain.Channel;
 import com.my.chen.fabric.app.util.DateUtil;
 import com.my.chen.fabric.app.util.FabricHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -19,7 +21,6 @@ public class ChannelService {
 
     @Resource
     private ChannelMapper channelMapper;
-
 
     @Resource
     private ChaincodeMapper chaincodeMapper;
@@ -43,10 +44,16 @@ public class ChannelService {
     }
 
 
+    // 需要限定没有对应的合约，然后
     public int update(Channel channel) {
 
-        FabricHelper.getInstance().removeManager(channelMapper.findByPeerId(channel.getPeerId()), chaincodeMapper);
         Channel entity = channelMapper.findById(channel.getId()).get();
+        List<Chaincode> chaincodes = chaincodeMapper.findByChannelId(entity.getId());
+        if(!CollectionUtils.isEmpty(chaincodes)){
+            log.info("channel "+channel.getName()+" has chain code and name can not be changed");
+            channel.setName(entity.getName());
+        }
+        FabricHelper.getInstance().removeManager(channelMapper.findByPeerId(channel.getPeerId()), chaincodeMapper);
         channel.setChaincodeCount(entity.getChaincodeCount());
         channel.setUpdateTime(DateUtil.getCurrent());
         channel.setCreateTime(entity.getCreateTime());
@@ -70,7 +77,7 @@ public class ChannelService {
     }
 
 
-    public int countById(int peerId) {
+    public int countByPeerId(int peerId) {
         return channelMapper.countByPeerId(peerId);
     }
 

@@ -6,9 +6,9 @@ import com.my.chen.fabric.app.domain.Org;
 import com.my.chen.fabric.app.util.DateUtil;
 import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.app.util.FileUtil;
-import org.springframework.core.env.Environment;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -17,13 +17,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
-public class OrgService  {
+public class OrgService {
 
     @Resource
     private OrgMapper orgMapper;
     @Resource
-    private Environment env;
+    private FileManageService manageService;
     @Resource
     private LeagueMapper leagueMapper;
     @Resource
@@ -32,7 +33,6 @@ public class OrgService  {
     private ChannelMapper channelMapper;
     @Resource
     private ChaincodeMapper chaincodeMapper;
-
 
 
     public int add(Org org, MultipartFile file) {
@@ -44,12 +44,8 @@ public class OrgService  {
 
         org.setCreateTime(DateUtil.getCurrent());
         org.setUpdateTime(DateUtil.getCurrent());
-        String parentPath = String.format("%s%s%s%s%s",
-                env.getProperty("config.dir"),
-                File.separator,
-                leagueMapper.findById(org.getLeagueId()).get().getName(),
-                File.separator,
-                org.getName());
+        String parentPath = manageService.getOrgPath(leagueMapper.findById(org.getLeagueId()).get().getName(), org.getName());
+
         String childrenPath = parentPath + File.separator + Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[0];
         org.setCryptoConfigDir(childrenPath);
         try {
@@ -64,13 +60,8 @@ public class OrgService  {
 
 
     public int update(Org org, MultipartFile file) {
-        if (null != file) {
-            String parentPath = String.format("%s%s%s%s%s",
-                    env.getProperty("config.dir"),
-                    File.separator,
-                    leagueMapper.findById(org.getLeagueId()).get().getName(),
-                    File.separator,
-                    org.getName());
+        if (null != file && !StringUtils.isBlank(file.getOriginalFilename())) {
+            String parentPath = manageService.getOrgPath(leagueMapper.findById(org.getLeagueId()).get().getName(), org.getName());
             String childrenPath = parentPath + File.separator + Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[0];
             org.setCryptoConfigDir(childrenPath);
             try {
@@ -80,13 +71,28 @@ public class OrgService  {
                 return 0;
             }
         }
-        FabricHelper.getInstance().removeManager(peerMapper.findByOrgId(org.getId()), channelMapper, chaincodeMapper);
 
         // 同样的道理，org中更新的数据仅包括修改的字段信息
         Org entity = orgMapper.findById(org.getId()).get();
+
+        // 如果修改组织名字，需要修改原来的配置名字
+        if (file == null || StringUtils.isBlank(file.getOriginalFilename())) {
+            String newPath = manageService.getOrgPath(leagueMapper.findById(org.getLeagueId()).get().getName(), org.getName());
+            String oldPath = manageService.getOrgPath(leagueMapper.findById(org.getLeagueId()).get().getName(), entity.getName());
+            try {
+                FileUtil.copyDirectory(oldPath, newPath);
+            } catch (IOException e) {
+                log.error("file copy error", e);
+                return 0;
+            }
+        }
+
+        FabricHelper.getInstance().removeManager(peerMapper.findByOrgId(org.getId()), channelMapper, chaincodeMapper);
         org.setPeerCount(entity.getPeerCount());
         org.setOrdererCount(entity.getOrdererCount());
         org.setUpdateTime(DateUtil.getCurrent());
+        org.setCreateTime(entity.getCreateTime());
+
         orgMapper.save(org);
         return 1;
     }

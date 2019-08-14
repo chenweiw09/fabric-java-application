@@ -34,7 +34,7 @@ public class ChaincodeService implements BaseService {
     private ChaincodeMapper chaincodeMapper;
 
     @Resource
-    private Environment env;
+    private FileManageService manageService;
 
     enum ChainCodeIntent {
         INSTALL, INSTANTIATE
@@ -55,17 +55,9 @@ public class ChaincodeService implements BaseService {
         if (!verify(chaincode) || null == file || null != check(chaincode)) {
             return responseFail("install error, param has none value and source mush be uploaded or had the same chaincode");
         }
-        String chaincodeSource = String.format("%s%s%s%s%s%s%s%s%s%schaincode",
-                env.getProperty("config.dir"),
-                File.separator,
-                chaincode.getLeagueName(),
-                File.separator,
-                chaincode.getOrgName(),
-                File.separator,
-                chaincode.getPeerName(),
-                File.separator,
-                chaincode.getChannelName(),
-                File.separator);
+
+        String chaincodeSource = manageService.getChainCodePath(chaincode.getLeagueName(), chaincode.getOrgName(), chaincode.getPeerName(), chaincode.getChannelName());
+
         String chaincodePath = Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[0];
         String childrenPath = String.format("%s%ssrc%s%s", chaincodeSource, File.separator, File.separator, Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[0]);
         chaincode.setSource(chaincodeSource);
@@ -84,9 +76,9 @@ public class ChaincodeService implements BaseService {
         String installedMsg = chainCode(chaincode.getId(), orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.INSTALL, new String[]{});
 
         JSONObject obj = JSONObject.parseObject(installedMsg);
-        if(SUCCESS != obj.getIntValue("code")){
+        if (SUCCESS != obj.getIntValue("code")) {
             chaincodeMapper.deleteById(chaincode.getId());
-        }else {
+        } else {
             chaincode.setInstalled(1);
             chaincodeMapper.save(chaincode);
         }
@@ -104,7 +96,7 @@ public class ChaincodeService implements BaseService {
         String instantiatedMsg = chainCode(chaincodeInfo.getId(), orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.INSTANTIATE, args);
 
         JSONObject obj = JSONObject.parseObject(instantiatedMsg);
-        if(SUCCESS == obj.getIntValue("code")){
+        if (SUCCESS == obj.getIntValue("code")) {
             chaincodeInfo.setInstantiated(1);
             chaincodeMapper.save(chaincodeInfo);
         }
@@ -114,14 +106,14 @@ public class ChaincodeService implements BaseService {
 
     public int update(Chaincode chaincodeInfo) {
         FabricHelper.getInstance().removeManager(chaincodeInfo.getId());
-         Chaincode entity = chaincodeMapper.findById(chaincodeInfo.getId()).get();
+        Chaincode entity = chaincodeMapper.findById(chaincodeInfo.getId()).get();
 
-         chaincodeInfo.setCreateTime(entity.getCreateTime());
-         chaincodeInfo.setUpdateTime(DateUtil.getCurrent());
-         chaincodeInfo.setPolicy(entity.getPolicy());
-         chaincodeInfo.setSource(entity.getSource());
-         chaincodeMapper.save(chaincodeInfo);
-         return 1;
+        chaincodeInfo.setCreateTime(entity.getCreateTime());
+        chaincodeInfo.setUpdateTime(DateUtil.getCurrent());
+        chaincodeInfo.setPolicy(entity.getPolicy());
+        chaincodeInfo.setSource(entity.getSource());
+        chaincodeMapper.save(chaincodeInfo);
+        return 1;
     }
 
 
@@ -151,9 +143,9 @@ public class ChaincodeService implements BaseService {
     }
 
 
-    public int delete(int chaincodeId){
-         chaincodeMapper.deleteById(chaincodeId);
-         return 1;
+    public int delete(int chaincodeId) {
+        chaincodeMapper.deleteById(chaincodeId);
+        return 1;
     }
 
     private String chainCode(int chaincodeId, OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chainCodeMapper,
@@ -182,10 +174,10 @@ public class ChaincodeService implements BaseService {
     }
 
     private boolean verify(Chaincode chaincode) {
-        if(chaincode.getProposalWaitTime() == 0){
+        if (chaincode.getProposalWaitTime() == 0) {
             chaincode.setProposalWaitTime(90000);
         }
-        if(chaincode.getInvokeWaitTime() ==0){
+        if (chaincode.getInvokeWaitTime() == 0) {
             chaincode.setInvokeWaitTime(120);
         }
         return StringUtils.isEmpty(chaincode.getName()) ||
@@ -193,8 +185,8 @@ public class ChaincodeService implements BaseService {
                 StringUtils.isEmpty(chaincode.getVersion());
     }
 
-    private Chaincode check(Chaincode chaincode){
-            Chaincode code = chaincodeMapper.findByNameAndVersionAndChannelId(chaincode.getName(),chaincode.getVersion(),chaincode.getChannelId());
+    private Chaincode check(Chaincode chaincode) {
+        Chaincode code = chaincodeMapper.findByNameAndVersionAndChannelId(chaincode.getName(), chaincode.getVersion(), chaincode.getChannelId());
         return code;
     }
 }

@@ -50,6 +50,11 @@ public class OrdererService {
         return 1;
     }
 
+    public int del(int id){
+        ordererMapper.deleteById(id);
+        return 1;
+    }
+
 
     public List<Orderer> listAll() {
         return Lists.newArrayList(ordererMapper.findAll());
@@ -66,7 +71,7 @@ public class OrdererService {
     }
 
 
-    public int countById(int orgId) {
+    public int countByOrgId(int orgId) {
         return ordererMapper.countByOrgId(orgId);
     }
 

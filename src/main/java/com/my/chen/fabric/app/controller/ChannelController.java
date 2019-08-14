@@ -66,8 +66,6 @@ public class ChannelController {
             Org org = orgService.get(peer.getOrgId());
             peer.setOrgName(org.getName());
             peer.setOrgId(org.getId());
-//            League league = leagueService.getById(org.getLeagueId());
-//            channel.setLeagueName(league.getName());
         }
         modelAndView.addObject("channel", channel);
         modelAndView.addObject("peers", peers);
@@ -117,39 +115,50 @@ public class ChannelController {
     }
 
     private Peer getPeerById(Integer peerId){
-        if(peerMap.containsKey(peerId)){
-            return peerMap.get(peerId);
-        }else {
-            Peer peer = peerService.get(peerId);
-            if(peer != null){
-                peerMap.put(peerId, peer);
-            }
-            return peer;
-        }
+        Peer peer = peerService.get(peerId);
+        return peer;
+
+//        if(peerMap.containsKey(peerId)){
+//            return peerMap.get(peerId);
+//        }else {
+//            Peer peer = peerService.get(peerId);
+//            if(peer != null){
+//                peerMap.put(peerId, peer);
+//            }
+//            return peer;
+//        }
     }
 
     private Org getOrgByOrgId(Integer orgId){
-        if(orgMap.containsKey(orgId)){
-            return orgMap.get(orgId);
-        }else {
-            Org org = orgService.get(orgId);
-            if(org != null){
-                orgMap.put(orgId, org);
-            }
-            return org;
-        }
+
+        Org org = orgService.get(orgId);
+        return org;
+
+//        if(orgMap.containsKey(orgId)){
+//            return orgMap.get(orgId);
+//        }else {
+//            Org org = orgService.get(orgId);
+//            if(org != null){
+//                orgMap.put(orgId, org);
+//            }
+//            return org;
+//        }
     }
 
+    // 这里先暴力查询，后期优化缓存
     private League getLeagueByLeagueId(Integer leagueId){
-        if(leagueMap.containsKey(leagueId)){
-            return leagueMap.get(leagueId);
-        }else {
-            League league = leagueService.getById(leagueId);
-            if(league != null){
-                leagueMap.put(leagueId, league);
-            }
-            return league;
-        }
+        League league = leagueService.getById(leagueId);
+        return league;
+//
+//        if(leagueMap.containsKey(leagueId)){
+//            return leagueMap.get(leagueId);
+//        }else {
+//            League league = leagueService.getById(leagueId);
+//            if(league != null){
+//                leagueMap.put(leagueId, league);
+//            }
+//            return league;
+//        }
     }
 
 }

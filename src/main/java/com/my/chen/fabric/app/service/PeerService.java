@@ -1,18 +1,22 @@
 package com.my.chen.fabric.app.service;
 
 import com.google.common.collect.Lists;
-import com.my.chen.fabric.app.dao.ChaincodeMapper;
-import com.my.chen.fabric.app.dao.ChannelMapper;
-import com.my.chen.fabric.app.dao.PeerMapper;
+import com.my.chen.fabric.app.dao.*;
+import com.my.chen.fabric.app.domain.League;
+import com.my.chen.fabric.app.domain.Org;
 import com.my.chen.fabric.app.domain.Peer;
 import com.my.chen.fabric.app.util.DateUtil;
 import com.my.chen.fabric.app.util.FabricHelper;
+import com.my.chen.fabric.app.util.FileUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @Service
 public class PeerService {
 
@@ -22,6 +26,16 @@ public class PeerService {
     private ChannelMapper channelMapper;
     @Resource
     private ChaincodeMapper chaincodeMapper;
+
+    @Resource
+    private OrgMapper orgMapper;
+
+    @Resource
+    private LeagueMapper leagueMapper;
+
+
+    @Resource
+    private FileManageService manageService;
 
 
     public int add(Peer peer) {
@@ -36,9 +50,24 @@ public class PeerService {
     }
 
 
+    // 因为peer 下挂载的是智能合约地址，所以如果peer的域名有变化，需要调整对应的智能合约地址地址
     public int update(Peer peer) {
-        FabricHelper.getInstance().removeManager(peerMapper.findByOrgId(peer.getOrgId()), channelMapper, chaincodeMapper);
         Peer entity = peerMapper.findById(peer.getId()).get();
+        if(!entity.getName().equals(peer.getName().trim())){
+            Org org = orgMapper.findById(peer.getOrgId()).get();
+            League league = leagueMapper.findById(org.getLeagueId()).get();
+            String oldPath = manageService.getPeerPath(league.getName(), org.getName(), entity.getName());
+            String newPath = manageService.getPeerPath(league.getName(), org.getName(), peer.getName());
+            try {
+                FileUtil.copyDirectory(oldPath, newPath);
+            } catch (IOException e) {
+                log.error(String.format("peer path has changed from %s to %s", oldPath, newPath),e);
+                return 0;
+            }
+        }
+
+        FabricHelper.getInstance().removeManager(peerMapper.findByOrgId(peer.getOrgId()), channelMapper, chaincodeMapper);
+
         peer.setChannelCount(entity.getChannelCount());
         peer.setUpdateTime(DateUtil.getCurrent());
         peer.setCreateTime(entity.getCreateTime());

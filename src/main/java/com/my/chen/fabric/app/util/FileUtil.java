@@ -1,8 +1,10 @@
 package com.my.chen.fabric.app.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -77,9 +79,7 @@ public class FileUtil {
 
         //缓存临时文件
         file.transferTo(dest);
-        String str1 = dest.getAbsolutePath();
-        String destFileFolder = str1.substring(0, str1.lastIndexOf("."));
-        unZip(String.format("%s" + File.separator + "%s", parentPath, fileName), destFileFolder, false);
+        unZip(String.format("%s" + File.separator + "%s", parentPath, fileName), parentPath, false);
         dest.delete();
     }
 
@@ -140,6 +140,44 @@ public class FileUtil {
                 log.debug(String.format("显示%s下所有子目录%s====文件名：%s", filePath, file.getAbsolutePath(), file.getName()));
             }
         }
+    }
+
+    public static void copyDirectory(String oldPath, String newPath) throws IOException {
+        if(!newPath.trim().equals(oldPath.trim())){
+            File newPathFile = new File(newPath);
+            File oldPathFile = new File(oldPath);
+
+            if(oldPathFile.exists()){
+                if(newPathFile.exists()){
+                    deleteFiles(newPath);
+                }
+                newPathFile.mkdirs();
+                FileUtils.copyDirectory(oldPathFile, newPathFile);
+                deleteFiles(oldPath);
+                oldPathFile.delete();
+            }
+        }
+    }
+
+
+
+    public static void main(String[] args) throws IOException {
+        File file1 =  new File("E:\\home\\web-fabric\\tt\\Org1");
+        File file2 = new File("E:\\home\\web-fabric\\tt\\Org2");
+
+        String[] list = null;
+        if(file1.exists()){
+            list = file1.list();
+        }
+
+        if(!file2.exists()){
+            file2.mkdirs();
+        }
+
+        if(!file1.getName().equals(file2.getName())){
+            FileUtils.copyDirectory(file1, file2);
+        }
+
     }
 
 }

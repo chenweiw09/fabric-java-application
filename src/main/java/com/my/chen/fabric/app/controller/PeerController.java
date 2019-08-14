@@ -81,7 +81,7 @@ public class PeerController {
         List<Peer> peers = peerService.listAll();
         for (Peer peer : peers) {
             peer.setOrgName(orgService.get(peer.getOrgId()).getName());
-            peer.setChannelCount(channelService.countById(peer.getId()));
+            peer.setChannelCount(channelService.countByPeerId(peer.getId()));
         }
         modelAndView.addObject("peers", peers);
         return modelAndView;
