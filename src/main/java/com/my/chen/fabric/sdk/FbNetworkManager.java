@@ -1,5 +1,6 @@
 package com.my.chen.fabric.sdk;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.Getter;
 import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
@@ -59,7 +60,7 @@ public class FbNetworkManager {
     }
 
     /** 安装智能合约 */
-    public Map<String, String> install() throws ProposalException, InvalidArgumentException {
+    public JSONObject install() throws ProposalException, InvalidArgumentException {
         return getChainCode().install(org);
     }
 
@@ -68,7 +69,7 @@ public class FbNetworkManager {
      *
      * @param args 初始化参数数组
      */
-    public Map<String, String> instantiate(String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
+    public JSONObject instantiate(String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
         return getChainCode().instantiate(org, args);
     }
 
@@ -77,7 +78,7 @@ public class FbNetworkManager {
      *
      * @param args 初始化参数数组
      */
-    public Map<String, String> upgrade(String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
+    public JSONObject upgrade(String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
         return getChainCode().upgrade(org, args);
     }
 
@@ -87,7 +88,7 @@ public class FbNetworkManager {
      * @param fcn  方法名
      * @param args 参数数组
      */
-    public Map<String, String> invoke(String fcn, String[] args) throws InvalidArgumentException, ProposalException, IOException, InterruptedException, ExecutionException, TimeoutException {
+    public JSONObject invoke(String fcn, String[] args) throws InvalidArgumentException, ProposalException, IOException, InterruptedException, ExecutionException, TimeoutException {
         return getChainCode().invoke(org, fcn, args);
     }
 
@@ -97,7 +98,7 @@ public class FbNetworkManager {
      * @param fcn  方法名
      * @param args 参数数组
      */
-    public Map<String, String> query(String fcn, String[] args) throws InvalidArgumentException, ProposalException {
+    public JSONObject query(String fcn, String[] args) throws InvalidArgumentException, ProposalException {
         return getChainCode().query(org, fcn, args);
     }
 
@@ -106,7 +107,7 @@ public class FbNetworkManager {
      *
      * @param txID transactionID
      */
-    public Map<String, String> queryBlockByTransactionID(String txID) throws ProposalException, IOException, InvalidArgumentException {
+    public JSONObject queryBlockByTransactionID(String txID) throws ProposalException, IOException, InvalidArgumentException {
         return org.getChannel().queryBlockByTransactionID(txID);
     }
 
@@ -115,7 +116,7 @@ public class FbNetworkManager {
      *
      * @param blockHash hash
      */
-    public Map<String, String> queryBlockByHash(byte[] blockHash) throws ProposalException, IOException, InvalidArgumentException {
+    public JSONObject queryBlockByHash(byte[] blockHash) throws ProposalException, IOException, InvalidArgumentException {
         return org.getChannel().queryBlockByHash(blockHash);
     }
 
@@ -124,16 +125,16 @@ public class FbNetworkManager {
      *
      * @param blockNumber 区块高度
      */
-    public Map<String, String> queryBlockByNumber(long blockNumber) throws ProposalException, IOException, InvalidArgumentException {
+    public JSONObject queryBlockByNumber(long blockNumber) throws ProposalException, IOException, InvalidArgumentException {
         return org.getChannel().queryBlockByNumber(blockNumber);
     }
 
-    public Map<String, String> joinPeer(String peerName, String peerEventHubName, String peerLocation, String peerEventHubLocation, boolean isEventListener) throws ProposalException, InvalidArgumentException {
-        return org.getChannel().joinPeer(new FbPeer(peerName, peerEventHubName, peerLocation, peerEventHubLocation, isEventListener));
+    public JSONObject joinPeer(String peerName, String peerLocation, String peerEventHubLocation, String serverCrtPath, String clientCertPath, String clientKeyPath) throws ProposalException, InvalidArgumentException {
+        return org.getChannel().joinPeer(new FbPeer(peerName, peerLocation, peerEventHubLocation, serverCrtPath, clientCertPath,clientKeyPath));
     }
 
     /** 查询当前频道的链信息，包括链长度、当前最新区块hash以及当前最新区块的上一区块hash */
-    public Map<String, String> getBlockchainInfo() throws ProposalException, InvalidArgumentException {
+    public JSONObject getBlockchainInfo() throws ProposalException, InvalidArgumentException {
         return org.getChannel().getBlockchainInfo();
     }
 
@@ -142,14 +143,12 @@ public class FbNetworkManager {
      */
     public List<FbPeer> getChannelPeers(){
         Collection<Peer> peers = org.getChannel().getChannel().getPeers();
-        return peers.stream().map(t -> new FbPeer(t.getName(), t.getUrl(), null, null, false)).collect(Collectors.toList());
+        return peers.stream().map(t -> new FbPeer(t.getName(), t.getUrl(), null, null)).collect(Collectors.toList());
     }
 
     public List<FbOrderer> getChannelOrderers(){
         Collection<Orderer> orderers = org.getChannel().getChannel().getOrderers();
         return orderers.stream().map(t -> new FbOrderer(t.getName(), t.getUrl())).collect(Collectors.toList());
     }
-
-
 
 }

@@ -24,11 +24,21 @@ public class Orderer implements Serializable {
     @Column
     private String location; // required
 
-    @Column
-    private int orgId; // required
+
+    // 平台的公钥
+    @Column(length = 512)
+    private String serverCrtPath;
+
+    // 客户端的公钥
+    @Column(length = 512)
+    private String clientCertPath;
+
+    // 客户端的私钥
+    @Column(length = 512)
+    private String clientKeyPath;
 
     @Column
-    private String orgName; // required
+    private int orgId; // required
 
     @Column
     private long createTime;
@@ -36,4 +46,8 @@ public class Orderer implements Serializable {
     @Column
     private long updateTime;
 
+
+    private String orgName;
+
+    private String leagueName;
 }

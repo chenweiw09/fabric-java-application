@@ -11,11 +11,12 @@ public class Api {
     public enum Intent {
         INVOKE(1, "state/invoke"),
         QUERY(2, "state/query"),
-        INFO(3, "trace/info/1"),
+        INFO(3, "trace/info"),
         HASH(4, "trace/hash"),
         NUMBER(5, "trace/number"),
         TXID(6, "trace/txid"),
-        INSTANTIATE(7, "chaincode/instantiate");
+        INSTANTIATE(7, "chaincode/instantiate"),
+        UPGRADE(8, "chaincode/upgrade");
 
         private int index;
         private String apiUrl;
@@ -57,6 +58,15 @@ public class Api {
     public int index = 0;
     /** 接口执行参数 */
     public String exec = "";
+
+    /** CA 标志*/
+    private String flag = "";
+
+    /** 请求app appKey */
+    private String key = "";
+
+    /** 请求Fabric版本号 */
+    private String version = "";
 
     public Api() {
     }

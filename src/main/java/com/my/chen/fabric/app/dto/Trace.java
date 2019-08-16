@@ -9,7 +9,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-public class Trace {
+public class Trace extends BaseChain{
 
     private int id; // required
     private String trace; // required

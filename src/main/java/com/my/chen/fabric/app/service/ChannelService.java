@@ -46,8 +46,8 @@ public class ChannelService {
 
     // 需要限定没有对应的合约，然后
     public int update(Channel channel) {
-
         Channel entity = channelMapper.findById(channel.getId()).get();
+
         List<Chaincode> chaincodes = chaincodeMapper.findByChannelId(entity.getId());
         if(!CollectionUtils.isEmpty(chaincodes)){
             log.info("channel "+channel.getName()+" has chain code and name can not be changed");
@@ -58,6 +58,18 @@ public class ChannelService {
         channel.setUpdateTime(DateUtil.getCurrent());
         channel.setCreateTime(entity.getCreateTime());
         channelMapper.save(channel);
+        return 1;
+    }
+
+    public int delete(int channelId){
+        Channel entity = channelMapper.findById(channelId).get();
+        List<Chaincode> chaincodes = chaincodeMapper.findByChannelId(entity.getId());
+        if(!CollectionUtils.isEmpty(chaincodes)){
+            log.info("channel "+entity.getName()+" has chain code and can not be deleted");
+            return 0;
+        }
+        FabricHelper.getInstance().removeManager(channelMapper.findByPeerId(entity.getPeerId()), chaincodeMapper);
+        channelMapper.deleteById(channelId);
         return 1;
     }
 

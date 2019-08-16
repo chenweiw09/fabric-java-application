@@ -86,7 +86,7 @@ public class FabricHelper {
 
 
     public FbNetworkManager get(OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chaincodeMapper,
-                                OrdererMapper ordererMapper, PeerMapper peerMapper, int chaincodeId) throws Exception {
+                                OrdererMapper ordererMapper, PeerMapper peerMapper, CA ca, int chaincodeId) throws Exception {
 
         this.chaincodeId = chaincodeId;
 

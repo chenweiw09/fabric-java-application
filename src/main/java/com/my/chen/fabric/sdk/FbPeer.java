@@ -24,15 +24,24 @@ public class FbPeer {
     /** 当前指定的组织节点事件监听访问地址 grpc://110.131.116.21:7053*/
     private String peerEventHubLocation;
 
-    /** 当前peer是否增加Event事件处理 */
-    private boolean addEventHub;
+    /** tls请求证书 */
+    private String serverCrtPath;
+    private String clientCertPath;
+    private String clientKeyPath;
 
-    public FbPeer(String peerName, String peerEventHubName, String peerLocation, String peerEventHubLocation, boolean addEventHub) {
+    public FbPeer(String peerName, String peerEventHubName, String peerLocation, String peerEventHubLocation) {
         this.peerName = peerName;
         this.peerEventHubName = peerEventHubName;
         this.peerLocation = peerLocation;
         this.peerEventHubLocation = peerEventHubLocation;
-        this.addEventHub = addEventHub;
     }
 
+    public FbPeer(String peerName,String peerLocation, String peerEventHubLocation, String serverCrtPath, String clientCertPath, String clientKeyPath) {
+        this.peerName = peerName;
+        this.peerLocation = peerLocation;
+        this.peerEventHubLocation = peerEventHubLocation;
+        this.serverCrtPath = serverCrtPath;
+        this.clientCertPath = clientCertPath;
+        this.clientKeyPath = clientKeyPath;
+    }
 }

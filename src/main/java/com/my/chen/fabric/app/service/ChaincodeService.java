@@ -4,12 +4,14 @@ package com.my.chen.fabric.app.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.my.chen.fabric.app.dao.*;
+import com.my.chen.fabric.app.domain.CA;
 import com.my.chen.fabric.app.domain.Chaincode;
 import com.my.chen.fabric.app.util.DateUtil;
 import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.app.util.FileUtil;
 import com.my.chen.fabric.sdk.FbNetworkManager;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,8 +38,11 @@ public class ChaincodeService implements BaseService {
     @Resource
     private FileManageService manageService;
 
+    @Resource
+    private CAMapper caMapper;
+
     enum ChainCodeIntent {
-        INSTALL, INSTANTIATE
+        INSTALL, INSTANTIATE, UPGRADE
     }
 
     public int add(Chaincode chaincode) {
@@ -51,10 +56,95 @@ public class ChaincodeService implements BaseService {
     }
 
 
-    public String install(Chaincode chaincode, MultipartFile file) {
+    public JSONObject install(Chaincode chaincode, MultipartFile file) {
         if (!verify(chaincode) || null == file || null != check(chaincode)) {
             return responseFail("install error, param has none value and source mush be uploaded or had the same chaincode");
         }
+
+        if (!uploadSource(chaincode, file)) {
+            responseFail("source unzip fail");
+        }
+
+        chaincodeMapper.save(chaincode);
+        chaincode.setId(check(chaincode).getId());
+
+        JSONObject obj = chainCode(chaincode.getId(), caMapper.findByFlag(chaincode.getFlag()), ChainCodeIntent.INSTALL, new String[]{});
+
+        if (SUCCESS != obj.getIntValue("code")) {
+            chaincodeMapper.deleteById(chaincode.getId());
+        } else {
+            chaincode.setInstalled(1);
+            chaincodeMapper.save(chaincode);
+        }
+        return obj;
+    }
+
+    public JSONObject instantiate(Chaincode chaincodeInfo, List<String> strArray) {
+        int size = strArray.size();
+        String[] args = new String[size];
+        for (int i = 0; i < size; i++) {
+            args[i] = strArray.get(i).trim();
+        }
+        JSONObject obj = chainCode(chaincodeInfo.getId(), caMapper.findByFlag(chaincodeInfo.getFlag()), ChainCodeIntent.INSTANTIATE, args);
+
+        if (SUCCESS == obj.getIntValue("code")) {
+            chaincodeInfo.setInstantiated(1);
+            chaincodeMapper.save(chaincodeInfo);
+        }
+        return obj;
+    }
+
+    public JSONObject upgrade(Chaincode chaincode, MultipartFile file, List<String> strArray) {
+        if (!verify(chaincode) || null == file || null != check(chaincode)) {
+            return responseFail("install error, param has none value and source mush be uploaded or had the same chaincode");
+        }
+
+        if (!uploadSource(chaincode, file)) {
+            responseFail("source unzip fail");
+        }
+
+        FabricHelper.getInstance().removeManager(chaincode.getId());
+        CA ca = caMapper.findByFlag(chaincode.getFlag());
+        JSONObject obj = chainCode(chaincode.getId(), ca, ChainCodeIntent.INSTALL, new String[]{});
+
+        // 如果升级失败，保持原来的应用
+        if (SUCCESS != obj.getIntValue("code")) {
+            return obj;
+        }
+
+        int size = strArray.size();
+        String[] args = new String[size];
+        for (int i = 0; i < size; i++) {
+            args[i] = strArray.get(i).trim();
+        }
+
+        obj = chainCode(chaincode.getId(), ca, ChainCodeIntent.UPGRADE, args);
+        // 安装成功了，但是升级失败了，保留原来的版本信息可用
+        if (SUCCESS != obj.getIntValue("code")) {
+            return obj;
+        }
+
+        // 开始做更新操作
+        FabricHelper.getInstance().removeManager(chaincode.getId());
+        Chaincode entity = chaincodeMapper.findById(chaincode.getId()).get();
+        chaincode.setInstalled(1);
+        chaincode.setInstantiated(1);
+        chaincode.setCreateTime(DateUtil.getCurrent());
+        chaincode.setUpdateTime(DateUtil.getCurrent());
+
+        String str = entity.getHistoryVersion();
+        if (org.apache.commons.lang3.StringUtils.isBlank(str)) {
+            chaincode.setHistoryVersion(entity.getVersion());
+        } else {
+            chaincode.setHistoryVersion(entity.getHistoryVersion() + "," + entity.getVersion());
+        }
+
+        chaincodeMapper.save(chaincode);
+        return obj;
+    }
+
+
+    private boolean uploadSource(Chaincode chaincode, MultipartFile file) {
 
         String chaincodeSource = manageService.getChainCodePath(chaincode.getLeagueName(), chaincode.getOrgName(), chaincode.getPeerName(), chaincode.getChannelName());
 
@@ -69,40 +159,11 @@ public class ChaincodeService implements BaseService {
             FileUtil.chaincodeUnzipAndSave(file, String.format("%s%ssrc", chaincodeSource, File.separator), childrenPath);
         } catch (IOException e) {
             e.printStackTrace();
-            return responseFail("source unzip fail");
-        }
-        chaincodeMapper.save(chaincode);
-        chaincode.setId(check(chaincode).getId());
-        String installedMsg = chainCode(chaincode.getId(), orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.INSTALL, new String[]{});
-
-        JSONObject obj = JSONObject.parseObject(installedMsg);
-        if (SUCCESS != obj.getIntValue("code")) {
-            chaincodeMapper.deleteById(chaincode.getId());
-        } else {
-            chaincode.setInstalled(1);
-            chaincodeMapper.save(chaincode);
+            return false;
         }
 
-        return installedMsg;
+        return true;
     }
-
-
-    public String instantiate(Chaincode chaincodeInfo, List<String> strArray) {
-        int size = strArray.size();
-        String[] args = new String[size];
-        for (int i = 0; i < size; i++) {
-            args[i] = strArray.get(i).trim();
-        }
-        String instantiatedMsg = chainCode(chaincodeInfo.getId(), orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.INSTANTIATE, args);
-
-        JSONObject obj = JSONObject.parseObject(instantiatedMsg);
-        if (SUCCESS == obj.getIntValue("code")) {
-            chaincodeInfo.setInstantiated(1);
-            chaincodeMapper.save(chaincodeInfo);
-        }
-        return instantiatedMsg;
-    }
-
 
     public int update(Chaincode chaincodeInfo) {
         FabricHelper.getInstance().removeManager(chaincodeInfo.getId());
@@ -148,11 +209,19 @@ public class ChaincodeService implements BaseService {
         return 1;
     }
 
-    private String chainCode(int chaincodeId, OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chainCodeMapper,
-                             OrdererMapper ordererMapper, PeerMapper peerMapper, ChainCodeIntent intent, String[] args) {
-        Map<String, String> resultMap = new HashMap<>();
+    public int deleteByChannelId(int channelId) {
+        List<Chaincode> chaincodes = chaincodeMapper.findByChannelId(channelId);
+        for (Chaincode chaincode : chaincodes) {
+            FabricHelper.getInstance().removeManager(chaincode.getId());
+            chaincodeMapper.deleteById(chaincode.getId());
+        }
+        return 1;
+    }
+
+    private JSONObject chainCode(int chaincodeId, CA ca, ChainCodeIntent intent, String[] args) {
+        JSONObject resultMap = new JSONObject();
         try {
-            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chainCodeMapper, ordererMapper, peerMapper,
+            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ca,
                     chaincodeId);
             switch (intent) {
                 case INSTALL:
@@ -161,16 +230,16 @@ public class ChaincodeService implements BaseService {
                 case INSTANTIATE:
                     resultMap = manager.instantiate(args);
                     break;
+                case UPGRADE:
+                    resultMap = manager.upgrade(args);
+                    break;
             }
-            if (resultMap.get("code").equals("error")) {
-                return responseFail(resultMap.get("data"));
-            } else {
-                return responseSuccess(resultMap.get("data"), resultMap.get("txid"));
-            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return responseFail(String.format("Request failed： %s", e.getMessage()));
         }
+        return resultMap;
     }
 
     private boolean verify(Chaincode chaincode) {

@@ -37,6 +37,17 @@ public class FileManageService {
     }
 
 
+    public String getOrdererPath(String leagueName, String orgName, String ordererName){
+        String path = String.format("%s%s%s%s%s%s%s",
+                env.getProperty("config.dir"),
+                File.separator, leagueName,
+                File.separator, orgName,
+                File.separator, ordererName
+        );
+        return path;
+    }
+
+
     public String getPeerPath(String leagueName, String orgName, String peerName) {
         String path = String.format("%s%s%s%s%s%s%s",
                 env.getProperty("config.dir"),

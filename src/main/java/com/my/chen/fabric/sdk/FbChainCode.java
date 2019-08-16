@@ -1,5 +1,7 @@
 package com.my.chen.fabric.sdk;
 
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.fabric.sdk.*;
@@ -108,7 +110,7 @@ public class FbChainCode {
      * @throws InvalidArgumentException
      * @throws ProposalException
      */
-    Map<String, String> install(FbOrg org) throws InvalidArgumentException, ProposalException {
+    JSONObject install(FbOrg org) throws InvalidArgumentException, ProposalException {
         InstallProposalRequest installProposalRequest = org.getClient().getClient().newInstallProposalRequest();
         installProposalRequest.setChaincodeName(chaincodeName);
         installProposalRequest.setChaincodeVersion(chaincodeVersion);
@@ -129,8 +131,7 @@ public class FbChainCode {
      * @param org
      * @param args
      */
-    Map<String, String> instantiate(FbOrg org, String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
-        /// Send transaction proposal to all peers
+    JSONObject instantiate(FbOrg org, String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
         InstantiateProposalRequest instantiateProposalRequest = org.getClient().getClient().newInstantiationProposalRequest();
         instantiateProposalRequest.setChaincodeID(chaincodeID);
         instantiateProposalRequest.setProposalWaitTime(proposalWaitTime);
@@ -159,8 +160,7 @@ public class FbChainCode {
      * @param org  中继组织对象
      * @param args 初始化参数数组
      */
-    Map<String, String> upgrade(FbOrg org, String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
-        /// Send transaction proposal to all peers
+    JSONObject upgrade(FbOrg org, String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
         UpgradeProposalRequest upgradeProposalRequest = org.getClient().getClient().newUpgradeProposalRequest();
         upgradeProposalRequest.setChaincodeID(chaincodeID);
         upgradeProposalRequest.setProposalWaitTime(proposalWaitTime);
@@ -189,7 +189,7 @@ public class FbChainCode {
      * @param fcn  方法名
      * @param args 参数数组
      */
-    Map<String, String> invoke(FbOrg org, String fcn, String[] args) throws InvalidArgumentException, ProposalException, IOException, InterruptedException, ExecutionException, TimeoutException {
+    JSONObject invoke(FbOrg org, String fcn, String[] args) throws InvalidArgumentException, ProposalException, IOException, InterruptedException, ExecutionException, TimeoutException {
         /// Send transaction proposal to all peers
         TransactionProposalRequest transactionProposalRequest = org.getClient().getClient().newTransactionProposalRequest();
         transactionProposalRequest.setChaincodeID(chaincodeID);
@@ -216,7 +216,7 @@ public class FbChainCode {
      * @param fcn  方法名
      * @param args 参数数组
      */
-    Map<String, String> query(FbOrg org, String fcn, String[] args) throws InvalidArgumentException, ProposalException {
+    JSONObject query(FbOrg org, String fcn, String[] args) throws InvalidArgumentException, ProposalException {
         QueryByChaincodeRequest queryByChaincodeRequest = org.getClient().getClient().newQueryProposalRequest();
         queryByChaincodeRequest.setArgs(args);
         queryByChaincodeRequest.setFcn(fcn);
@@ -235,8 +235,10 @@ public class FbChainCode {
     }
 
 
-    private Map<String, String> toOrdererResponse(Collection<ProposalResponse> proposalResponses, FbOrg org) throws InvalidArgumentException, UnsupportedEncodingException, InterruptedException, ExecutionException, TimeoutException {
-        Map<String, String> resultMap = new HashMap<>();
+    private JSONObject toOrdererResponse(Collection<ProposalResponse> proposalResponses, FbOrg org) throws InvalidArgumentException, UnsupportedEncodingException, InterruptedException, ExecutionException, TimeoutException {
+
+        JSONObject result = new JSONObject();
+
         Collection<ProposalResponse> successful = new LinkedList<>();
         Collection<ProposalResponse> failed = new LinkedList<>();
         for (ProposalResponse response : proposalResponses) {
@@ -251,15 +253,15 @@ public class FbChainCode {
         if (proposalConsistencySets.size() != 1) {
             log.error("Expected only one set of consistent proposal responses but got " + proposalConsistencySets.size());
         }
+
         if (failed.size() > 0) {
             ProposalResponse firstTransactionProposalResponse = failed.iterator().next();
             log.error("Not enough endorsers for inspect:" + failed.size() + " endorser error: " + firstTransactionProposalResponse.getMessage() + ". Was verified: "
                     + firstTransactionProposalResponse.isVerified());
-            resultMap.put("code", "error");
-            resultMap.put("data", firstTransactionProposalResponse.getMessage());
-            return resultMap;
+            result.put("code", "error");
+            result.put("data", firstTransactionProposalResponse.getMessage());
+            return result;
         } else {
-            log.info("Successfully received transaction proposal responses.");
             ProposalResponse resp = proposalResponses.iterator().next();
             log.debug("TransactionID: " + resp.getTransactionID());
             byte[] x = resp.getChaincodeActionResponsePayload();
@@ -268,40 +270,59 @@ public class FbChainCode {
                 resultAsString = new String(x, "UTF-8");
             }
             log.info("resultAsString = " + resultAsString);
-            org.getChannel().getChannel().sendTransaction(successful).get(transactionWaitTime, TimeUnit.SECONDS);
-            resultMap.put("code", "success");
-            resultMap.put("data", resultAsString);
-            resultMap.put("txid", resp.getTransactionID());
-            return resultMap;
+
+            // 这里修改为通过一部监听事件而不是等待
+//            org.getChannel().getChannel().sendTransaction(successful).get(transactionWaitTime, TimeUnit.SECONDS);
+            org.getChannel().getChannel().sendTransaction(successful);
+
+            result = parseResult(resultAsString);
+            result.put("code", BlockListener.SUCCESS);
+            result.put("txid", resp.getTransactionID());
+
+            return result;
         }
     }
 
     /**
      * 获取安装合约以及query合约的返回结果集合
-     *
-     * @param proposalResponses 请求返回集合
-     * @param checkVerified     是否验证提案
      */
-    private Map<String, String> toPeerResponse(Collection<ProposalResponse> proposalResponses, boolean checkVerified) {
-        Map<String, String> resultMap = new HashMap<>();
+    private JSONObject toPeerResponse(Collection<ProposalResponse> proposalResponses, boolean checkVerified) {
+        JSONObject resultMap = new JSONObject();
         for (ProposalResponse proposalResponse : proposalResponses) {
             if ((checkVerified && !proposalResponse.isVerified()) || proposalResponse.getStatus() != ProposalResponse.Status.SUCCESS) {
                 String data = String.format("Failed install/query proposal from peer %s status: %s. Messages: %s. Was verified : %s",
                         proposalResponse.getPeer().getName(), proposalResponse.getStatus(), proposalResponse.getMessage(), proposalResponse.isVerified());
                 log.debug(data);
-                resultMap.put("code", "error");
+                resultMap.put("code", BlockListener.ERROR);
                 resultMap.put("data", data);
             } else {
                 String payload = proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
                 log.debug("Install/Query payload from peer: " + proposalResponse.getPeer().getName());
                 log.debug("TransactionID: " + proposalResponse.getTransactionID());
                 log.debug("" + payload);
-                resultMap.put("code", "success");
-                resultMap.put("data", payload);
+
+                resultMap = parseResult(payload);
+
+                resultMap.put("code", BlockListener.SUCCESS);
                 resultMap.put("txid", proposalResponse.getTransactionID());
             }
         }
         return resultMap;
+    }
+
+    private JSONObject parseResult(String result) {
+        JSONObject jsonObject = new JSONObject();
+
+        try {
+            jsonObject.put("data", JSONObject.parseObject(result));
+        }catch (JSONException ex){
+            try {
+                jsonObject.put("data", JSONObject.parseArray(result));
+            }catch (JSONException ex1){
+                jsonObject.put("data", result);
+            }
+        }
+        return jsonObject;
     }
 
 }

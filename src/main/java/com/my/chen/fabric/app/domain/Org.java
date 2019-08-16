@@ -25,36 +25,21 @@ public class Org implements Serializable {
     private boolean tls; // required
 
     @Column
-    private String username; // required
-
-    @Column
-    private String cryptoConfigDir; // required
-
-    @Column
     private String mspId; // required
 
     @Column
-    private String domainName; // required
-
-    @Column
-    private String ordererDomainName; // required
-
-    @Column
     private int leagueId; // required
-
-    @Column
-    private String leagueName; // required
-
-    @Column
-    private int peerCount; // required
-
-    @Column
-    private int ordererCount; // required
-
 
     @Column
     private long createTime;
 
     @Column
     private long updateTime;
+
+
+    private String leagueName;
+
+    private int peerCount;
+
+    private int ordererCount;
 }

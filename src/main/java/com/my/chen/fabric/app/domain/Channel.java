@@ -23,22 +23,29 @@ public class Channel implements Serializable {
     @Column
     private int peerId; // required
 
-    @Column
-    private String peerName; // optional
+    @Column(columnDefinition = "INT", length = 1)
+    private boolean blockListener; // required
 
-    @Column
-    private String orgName; // optional
+    @Column(length = 128)
+    private String callbackLocation; // required
 
-    @Column
-    private String leagueName; // optional
-
-    @Column
-    private int chaincodeCount; // optional
+    @Column(length = 9)
+    private int height;
 
     @Column
     private long createTime;
 
     @Column
     private long updateTime;
+
+
+    private String peerName; // optional
+
+    private String orgName; // optional
+
+    private String leagueName; // optional
+
+    private int chaincodeCount; // optional
+
 
 }

@@ -160,6 +160,21 @@ public class FileUtil {
     }
 
 
+    public static void saveFile(MultipartFile file, String filePath) throws IOException {
+
+        File dest = new File(filePath);
+        if(dest.exists()){
+            dest.delete();
+        }
+
+        if (!dest.getParentFile().exists()) {
+            dest.getParentFile().mkdirs();
+        }
+
+        file.transferTo(dest);
+    }
+
+
 
     public static void main(String[] args) throws IOException {
         File file1 =  new File("E:\\home\\web-fabric\\tt\\Org1");

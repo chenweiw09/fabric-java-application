@@ -11,7 +11,7 @@ import java.util.List;
  */
 @Setter
 @Getter
-public class State {
+public class State extends BaseChain{
 
     private int id; // required
     private List<String> strArray; // required

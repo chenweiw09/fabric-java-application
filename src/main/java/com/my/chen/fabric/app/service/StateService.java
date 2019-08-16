@@ -1,15 +1,15 @@
 package com.my.chen.fabric.app.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.my.chen.fabric.app.dao.*;
+import com.my.chen.fabric.app.domain.CA;
 import com.my.chen.fabric.app.dto.State;
 import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.sdk.FbNetworkManager;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 描述：
@@ -30,22 +30,24 @@ public class StateService implements BaseService {
     @Resource
     private ChaincodeMapper chaincodeMapper;
 
+    @Resource
+    private CAMapper caMapper;
+
     enum ChainCodeIntent {
         INVOKE, QUERY
     }
 
-    public String invoke(State state) {
-        return chainCode(state, orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.INVOKE);
+    public JSONObject invoke(State state) {
+        return chainCode(state, ChainCodeIntent.INVOKE, caMapper);
     }
 
 
-    public String query(State state) {
-        return chainCode(state, orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ChainCodeIntent.QUERY);
+    public JSONObject query(State state) {
+        return chainCode(state, ChainCodeIntent.QUERY, caMapper);
     }
 
 
-    private String chainCode(State state, OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chainCodeMapper,
-                             OrdererMapper ordererMapper, PeerMapper peerMapper, ChainCodeIntent intent) {
+    private JSONObject chainCode(State state, ChainCodeIntent intent, CAMapper caMapper) {
         List<String> array = state.getStrArray();
         int length = array.size();
         String fcn = null;
@@ -57,27 +59,27 @@ public class StateService implements BaseService {
                 argArray[i - 1] = array.get(i).trim();
             }
         }
-        Map<String, String> resultMap = new HashMap<>();
+
+        CA ca = caMapper.findByFlag(state.getFlag());
+
+        JSONObject result = new JSONObject();
         try {
-            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chainCodeMapper, ordererMapper, peerMapper,
-                    state.getId());
+            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper,
+                    ca, state.getId());
             switch (intent) {
                 case INVOKE:
-                    resultMap = manager.invoke(fcn, argArray);
+                    result = manager.invoke(fcn, argArray);
                     break;
                 case QUERY:
-                    resultMap = manager.query(fcn, argArray);
+                    result= manager.query(fcn, argArray);
                     break;
-            }
-            if (resultMap.get("code").equals("error")) {
-                return responseFail(resultMap.get("data"));
-            } else {
-                return responseSuccess(resultMap.get("data"), resultMap.get("txid"));
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return responseFail(String.format("Request failed： %s", e.getMessage()));
+            result = responseFail(String.format("Request failed： %s", e.getMessage()));
         }
+
+        return result;
     }
 
 }

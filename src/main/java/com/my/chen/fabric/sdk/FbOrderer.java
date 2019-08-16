@@ -17,8 +17,20 @@ public class FbOrderer {
     /** orderer的访问地址 orderer.test.com:7050*/
     private String ordererLocation;
 
+    private String serverCrtPath;
+    private String clientCertPath;
+    private String clientKeyPath;
+
     public FbOrderer(String ordererName, String ordererLocation) {
         this.ordererName = ordererName;
         this.ordererLocation = ordererLocation;
+    }
+
+    public FbOrderer(String ordererName, String ordererLocation, String serverCrtPath, String clientCertPath, String clientKeyPath) {
+        this.ordererName = ordererName;
+        this.ordererLocation = ordererLocation;
+        this.serverCrtPath = serverCrtPath;
+        this.clientCertPath = clientCertPath;
+        this.clientKeyPath = clientKeyPath;
     }
 }

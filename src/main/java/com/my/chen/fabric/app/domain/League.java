@@ -19,14 +19,13 @@ public class League implements Serializable {
     @Column(length = 60)
     private String name; // required
 
-    @Column
-    private int orgCount; // required
-
 
     @Column
     private long createTime;
 
     @Column
     private long updateTime;
+
+    private int orgCount; // required
 
 }

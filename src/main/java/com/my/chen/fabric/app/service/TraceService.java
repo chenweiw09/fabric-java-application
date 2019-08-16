@@ -2,6 +2,7 @@ package com.my.chen.fabric.app.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.my.chen.fabric.app.dao.*;
+import com.my.chen.fabric.app.domain.CA;
 import com.my.chen.fabric.app.dto.Trace;
 import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.sdk.FbNetworkManager;
@@ -25,57 +26,63 @@ public class TraceService implements BaseService {
     @Resource
     private ChaincodeMapper chaincodeMapper;
 
+    @Resource
+    private CAMapper caMapper;
+
     enum TraceIntent {
         TRANSACTION, HASH, NUMBER, INFO
     }
 
-    public String queryBlockByTransactionID(Trace trace) {
-        return trace(trace, orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, TraceIntent.TRANSACTION);
+    public JSONObject queryBlockByTransactionID(Trace trace) {
+        return trace(trace, TraceIntent.TRANSACTION, caMapper);
     }
 
 
-    public String queryBlockByHash(Trace trace) {
-        return trace(trace, orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, TraceIntent.HASH);
+    public JSONObject queryBlockByHash(Trace trace) {
+        return trace(trace, TraceIntent.HASH, caMapper);
     }
 
 
-    public String queryBlockByNumber(Trace trace) {
-        return trace(trace, orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, TraceIntent.NUMBER);
+    public JSONObject queryBlockByNumber(Trace trace) {
+        return trace(trace, TraceIntent.NUMBER, caMapper);
     }
 
 
-    public String queryBlockChainInfo(int id) {
+    public JSONObject queryBlockChainInfo(int id, String key) {
         Trace trace = new Trace();
         trace.setId(id);
-        return trace(trace, orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, TraceIntent.INFO);
+        trace.setKey(key);
+        return trace(trace, TraceIntent.INFO, caMapper);
     }
 
 
+    private JSONObject trace(Trace trace, TraceIntent intent, CAMapper caMapper) {
 
-    private String trace(Trace trace, OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chaincodeMapper,
-                         OrdererMapper ordererMapper, PeerMapper peerMapper, TraceIntent intent) {
-        Map<String, String> resultMap = null;
+        JSONObject result = new JSONObject();
+
+        CA ca = caMapper.findByFlag(trace.getFlag());
+
         try {
-            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper,
+            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ca,
                     trace.getId());
             switch (intent) {
                 case TRANSACTION:
-                    resultMap = manager.queryBlockByTransactionID(trace.getTrace());
+                    result = manager.queryBlockByTransactionID(trace.getTrace());
                     break;
                 case HASH:
-                    resultMap = manager.queryBlockByHash(Hex.decodeHex(trace.getTrace().toCharArray()));
+                    result = manager.queryBlockByHash(Hex.decodeHex(trace.getTrace().toCharArray()));
                     break;
                 case NUMBER:
-                    resultMap = manager.queryBlockByNumber(Long.valueOf(trace.getTrace()));
+                    result = manager.queryBlockByNumber(Long.valueOf(trace.getTrace()));
                     break;
                 case INFO:
-                    resultMap = manager.getBlockchainInfo();
+                    result = manager.getBlockchainInfo();
                     break;
             }
-            return responseSuccess(JSONObject.parseObject(resultMap.get("data")));
+
         } catch (Exception e) {
-            e.printStackTrace();
-            return responseFail(String.format("Request failed： %s", e.getMessage()));
+            result = responseFail(String.format("Request failed： %s", e.getMessage()));
         }
+        return result;
     }
 }

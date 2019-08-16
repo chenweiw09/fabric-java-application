@@ -22,29 +22,36 @@ public class Peer implements Serializable {
     private String name; // required
 
     @Column
-    private String eventHubName; // required
-
-    @Column
     private String location; // required
 
     @Column
     private String eventHubLocation; // required
 
     @Column
-    private boolean eventListener; // required
-
-    @Column
     private int orgId; // required
 
-    @Column
-    private String orgName; // required
 
-    @Column
-    private int channelCount; // required
+    @Column(length = 512)
+    private String serverCrtPath;
+
+    @Column(length = 512)
+    private String clientCertPath;
+
+    @Column(length = 512)
+    private String clientKeyPath;
 
     @Column
     private long createTime;
 
     @Column
     private long updateTime;
+
+    private String eventHubName;
+
+    private String orgName;
+
+    private int channelCount;
+
+    private String leagueName;
+
 }

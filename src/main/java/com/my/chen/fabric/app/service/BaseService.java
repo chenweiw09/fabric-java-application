@@ -37,11 +37,11 @@ public interface BaseService {
         return jsonObject.toString();
     }
 
-    default String responseFail(String result) {
+    default JSONObject responseFail(String result) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("code", FAIL);
         jsonObject.put("error", result);
-        return jsonObject.toString();
+        return jsonObject;
     }
 
     default JSONObject parseResult(String result) {

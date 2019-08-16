@@ -48,28 +48,40 @@ public class Chaincode implements Serializable {
     @Column
     private int channelId;
 
-    @Column(length = 40)
-    private String channelName;
-
-    @Column(length = 40)
-    private String peerName;
-
-    @Column(length = 40)
-    private String orgName;
-
-    // 联盟名字
-    @Column(length = 40)
-    private String leagueName;
-
     @Column(length = 2)
     private Integer installed=0;
 
     @Column(length = 2)
     private Integer instantiated=0;
 
+    @Column(columnDefinition="INT",length = 1)
+    private boolean chaincodeEventListener;
+
+    @Column(length = 128)
+    private String callbackLocation;
+
+
+    @Column(length = 512)
+    private String events;
+
+    @Column
+    private String historyVersion;
+
     @Column
     private long createTime;
 
     @Column
     private long updateTime;
+
+
+    private String channelName;
+
+    private String peerName;
+
+    private String orgName;
+
+    // 联盟名字
+    private String leagueName;
+
+    private String flag;
 }
