@@ -1,17 +1,18 @@
 package com.my.chen.fabric.app.util;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.my.chen.fabric.app.domain.Block;
+import com.my.chen.fabric.app.domain.CA;
 import com.my.chen.fabric.app.domain.Channel;
 import com.my.chen.fabric.app.dto.Trace;
-import com.my.chen.fabric.app.service.ChannelService;
-import com.my.chen.fabric.app.service.TraceService;
+import com.my.chen.fabric.app.service.*;
+import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chenwei
@@ -27,6 +28,11 @@ public class BlockUtil {
     private final List<Block> blocks = new LinkedList<>();
     private final Map<Integer, Boolean> channelRun = new HashMap<>();
     private final Map<Integer, Boolean> channelUpdata = new HashMap<>();
+
+    // 使用默认的拒绝策略
+    private static final RejectedExecutionHandler defaultHandler = new java.util.concurrent.ThreadPoolExecutor.AbortPolicy();
+    private ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(10, 20, 600, TimeUnit.SECONDS,
+            new LinkedBlockingDeque<>(), defaultHandler);
 
     public static BlockUtil obtain() {
         if (null == instance) {
@@ -53,26 +59,26 @@ public class BlockUtil {
                 this.channelUpdata.put(channel.getId(), true);
                 execChannel(channelService, caService, blockService, traceService, channel.getId());
             }
-            CA ca = caService.listById(channel.getPeerId()).get(0);
+            CA ca = caService.listByPeerId(channel.getPeerId()).get(0);
             Trace trace = new Trace();
             trace.setChannelId(channel.getId());
-            JSONObject blockMessage = JSON.parseObject(traceService.queryBlockInfoWithCa(trace, ca));
-            int code = blockMessage.containsKey("code") ? blockMessage.getInteger("code") : 9999;
-            if (code == 200) {
-                channelService.updateHeight(channel.getId(), blockMessage.getJSONObject("data").getInteger("height"));
+            JSONObject blockMessage = traceService.queryBlockInfoWithCa(trace, ca);
+            int code = blockMessage.containsKey("code") ? blockMessage.getInteger("code") : BaseService.FAIL;
+            if (code == BaseService.SUCCESS) {
+                channelService.updateChannelHeight(channel.getId(), blockMessage.getJSONObject("data").getInteger("height"));
             }
         }
     }
 
     private void execChannel(ChannelService channelService, CAService caService, BlockService blockService, TraceService traceService, int channelId) {
-        ThreadFNSPool.obtain().submitFixed(() -> {
-            Block block = blockService.getByChannelId(channelId);
+        poolExecutor.submit(() -> {
+            Block block = blockService.getByChannelId(channelId).get(0);
             int height = -1;
             if (null != block) {
                 height = block.getHeight();
             }
             height = height == -1 ? 0 : height + 1;
-            CA ca = caService.listById(channelService.get(channelId).getPeerId()).get(0);
+            CA ca = caService.listByPeerId(channelService.get(channelId).getPeerId()).get(0);
             while (channelRun.get(channelId)) {
                 if (!channelUpdata.get(channelId)) {
                     try {
@@ -98,14 +104,14 @@ public class BlockUtil {
         Trace trace = new Trace();
         trace.setChannelId(channelId);
         trace.setTrace(String.valueOf(height));
-        JSONObject blockMessage = JSON.parseObject(traceService.queryBlockByNumberWithCa(trace, ca));
+        JSONObject blockMessage = traceService.queryBlockByNumberWithCa(trace, ca);
         return execBlock(blockMessage, blockService, channelId, height);
     }
 
     private boolean execBlock(JSONObject blockJson, BlockService blockService, int channelId, int height) {
         try {
-            int code = blockJson.containsKey("code") ? blockJson.getInteger("code") : 9999;
-            if (code != 200) {
+            int code = blockJson.containsKey("code") ? blockJson.getInteger("code") : BaseService.FAIL;
+            if (code != BaseService.SUCCESS) {
                 return false;
             }
 
@@ -140,7 +146,8 @@ public class BlockUtil {
             block.setRwSetCount(rwSetCount);
             block.setTimestamp(timestamp);
             block.setCalculateDate(Integer.valueOf(DateUtil.date2Str(date, "yyyyMMdd")));
-            block.setCreateDate(DateUtil.getCurrent("yyyy/MM/dd HH:mm:ss"));
+            block.setCreateTime(DateUtil.getCurrent());
+            block.setUpdateTime(DateUtil.getCurrent());
 
             synchronized (blocks) {
                 blocks.add(block);
@@ -149,7 +156,6 @@ public class BlockUtil {
                     Thread.sleep(1000);
                 }
             }
-            log.info(String.format("exec block data for number %s", height));
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -158,7 +164,6 @@ public class BlockUtil {
     }
 
     private void insert(BlockService blockService) {
-        log.info(String.format("insert block data now blockList %s", blocks.size()));
         blockService.addBlockList(blocks);
         blocks.clear();
     }
@@ -176,4 +181,4 @@ public class BlockUtil {
         channelUpdata.put(channelId, true);
     }
 }
-}
+

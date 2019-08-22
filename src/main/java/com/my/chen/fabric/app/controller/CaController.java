@@ -1,5 +1,8 @@
 package com.my.chen.fabric.app.controller;
 
+import com.my.chen.fabric.app.domain.CA;
+import com.my.chen.fabric.app.service.CAService;
+import com.my.chen.fabric.app.service.PeerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +26,9 @@ public class CaController {
     @Resource
     private CAService caService;
 
+    @Resource
+    private PeerService peerService;
+
     @PostMapping(value = "submit")
     public ModelAndView submit(@ModelAttribute CA ca,
                                @RequestParam("intent") String intent,
@@ -30,7 +36,7 @@ public class CaController {
                                @RequestParam("certificateFile") MultipartFile certificateFile) {
         switch (intent) {
             case "add":
-                caService.add(ca, skFile, certificateFile);
+                caService.addCa(ca, skFile, certificateFile);
                 break;
             case "edit":
                 caService.update(ca, skFile, certificateFile);
@@ -42,22 +48,23 @@ public class CaController {
     @GetMapping(value = "add")
     public ModelAndView add() {
         ModelAndView modelAndView = new ModelAndView("caSubmit");
-        modelAndView.addObject("intentLittle", SpringUtil.get("enter"));
-        modelAndView.addObject("submit", SpringUtil.get("submit"));
+        modelAndView.addObject("intentLarge", "新增CA");
+        modelAndView.addObject("intentLittle", "新增");
+        modelAndView.addObject("submit", "提交");
         modelAndView.addObject("intent", "add");
         modelAndView.addObject("ca", new CA());
-        modelAndView.addObject("peers", caService.getFullPeers());
+        modelAndView.addObject("peers", peerService.listAll());
         return modelAndView;
     }
 
     @GetMapping(value = "edit")
     public ModelAndView edit(@RequestParam("id") int id) {
         ModelAndView modelAndView = new ModelAndView("caSubmit");
-        modelAndView.addObject("intentLittle", SpringUtil.get("edit"));
-        modelAndView.addObject("submit", SpringUtil.get("modify"));
+        modelAndView.addObject("intentLittle", "编辑");
+        modelAndView.addObject("submit", "修改");
         modelAndView.addObject("intent", "edit");
 
-        CA ca = caService.get(id);
+        CA ca = caService.findById(id);
         modelAndView.addObject("ca", ca);
         modelAndView.addObject("peers", caService.getPeersByCA(ca));
         return modelAndView;
@@ -76,5 +83,4 @@ public class CaController {
         return new ModelAndView(new RedirectView("list"));
     }
 
-}
 }

@@ -6,12 +6,13 @@ import com.my.chen.fabric.app.domain.CA;
 import com.my.chen.fabric.app.dto.Trace;
 import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.sdk.FbNetworkManager;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Map;
 
+@Slf4j
 @Service("traceService")
 public class TraceService implements BaseService {
 
@@ -28,6 +29,9 @@ public class TraceService implements BaseService {
 
     @Resource
     private CAMapper caMapper;
+
+    @Resource
+    private LeagueMapper leagueMapper;
 
     enum TraceIntent {
         TRANSACTION, HASH, NUMBER, INFO
@@ -56,15 +60,45 @@ public class TraceService implements BaseService {
     }
 
 
-    private JSONObject trace(Trace trace, TraceIntent intent, CAMapper caMapper) {
+    public JSONObject queryBlockByNumberWithCa(Trace trace, CA ca) {
+        return trace(trace, TraceIntent.NUMBER, ca);
+    }
 
-        JSONObject result = new JSONObject();
+    public JSONObject queryBlockInfoWithCa(Trace trace, CA ca) {
+        return trace(trace, TraceIntent.INFO, ca);
+    }
 
-        CA ca = caMapper.findByFlag(trace.getFlag());
 
+    public JSONObject trace(Trace trace, TraceIntent intent, CA ca){
         try {
-            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ca,
-                    trace.getId());
+            FbNetworkManager manager = FabricHelper.getInstance().get(leagueMapper, orgMapper, channelMapper, chaincodeMapper, ordererMapper,
+                    peerMapper, ca, trace.getId());
+            return trace(trace, intent, manager);
+        }catch (Exception e){
+            log.error("trace error",e);
+            return responseFail(String.format("Request failed： %s", e.getMessage()));
+        }
+    }
+
+
+    private JSONObject trace(Trace trace, TraceIntent intent, CAMapper caMapper) {
+        try {
+            CA ca = caMapper.findByFlag(trace.getFlag());
+            FbNetworkManager manager = FabricHelper.getInstance().get(leagueMapper, orgMapper, channelMapper, chaincodeMapper, ordererMapper,
+                    peerMapper, ca, trace.getId());
+            return trace(trace, intent, manager);
+        }catch (Exception e){
+            log.error("trace error",e);
+            return responseFail(String.format("Request failed： %s", e.getMessage()));
+        }
+
+    }
+
+
+
+    private JSONObject trace(Trace trace, TraceIntent intent,FbNetworkManager manager){
+        JSONObject result = new JSONObject();
+        try {
             switch (intent) {
                 case TRANSACTION:
                     result = manager.queryBlockByTransactionID(trace.getTrace());
@@ -85,4 +119,7 @@ public class TraceService implements BaseService {
         }
         return result;
     }
+
+
+
 }

@@ -26,7 +26,7 @@ public class LeagueController {
     public ModelAndView submit(@ModelAttribute League league,
                                @RequestParam("intent") String intent,
                                @RequestParam("id") int id) {
-        switch (intent) {
+        switch (intent.toLowerCase()) {
             case "add":
                 leagueService.add(league);
                 break;
@@ -73,10 +73,11 @@ public class LeagueController {
         ModelAndView modelAndView = new ModelAndView("leagues");
         List<League> leagues = leagueService.listAll();
         for (League league : leagues) {
-            league.setOrgCount(orgService.countById(league.getId()));
+            league.setOrgCount(orgService.countByLeagueId(league.getId()));
         }
         modelAndView.addObject("leagues", leagues);
         return modelAndView;
     }
+
 
 }

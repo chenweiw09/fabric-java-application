@@ -78,7 +78,7 @@ public class CAService {
         ca.setCreateTime(entity.getCreateTime());
         ca.setUpdateTime(DateUtil.getCurrent());
 
-        if(skFile != null && StringUtils.isBlank(skFile.getOriginalFilename()) && certFile != null && StringUtils.isBlank(certFile.getOriginalFilename())){
+        if(skFile != null && StringUtils.isNotBlank(skFile.getOriginalFilename()) && certFile != null && StringUtils.isNotBlank(certFile.getOriginalFilename())){
             try {
                 ca.setSk(new String(IOUtils.toByteArray(skFile.getInputStream())));
                 ca.setCertificate(new String(IOUtils.toByteArray(certFile.getInputStream()), "UTF-8"));
@@ -161,7 +161,7 @@ public class CAService {
         ca.setLeagueName(league.getName());
         ca.setOrgName(org.getMspId());
         ca.setPeerName(peer.getName());
-        ca.setFlag(peer.getName()+ca.getName());
+        ca.setFlag(peer.getName()+"-"+ca.getName());
         // ca.setName(String.format("%s-%s", ca.getName(), ca.getPeerId()));
         return ca;
     }

@@ -94,60 +94,7 @@
                                         <small>请填写组织唯一标识符，如Org1MSP。</small>
                                     </div>
                                 </div>
-                                <div class="am-form-group">
-                                    <label for="domain-name" class="am-u-sm-3 am-form-label">组织域名 <span
-                                            class="tpl-form-line-small-title">domain</span></label>
-                                    <div class="am-u-sm-9">
-                                        <input type="text" class="tpl-form-input" id="domain-name" placeholder="请输入组织域名"
-                                               th:field="*{domainName}">
-                                        <small>请填写组织域名，如org1.example.com。</small>
-                                    </div>
-                                </div>
-                                <div class="am-form-group">
-                                    <label for="orderer-domain-name" class="am-u-sm-3 am-form-label">排序服务域名 <span
-                                            class="tpl-form-line-small-title">ordererDomain</span></label>
-                                    <div class="am-u-sm-9">
-                                        <input type="text" class="tpl-form-input" id="orderer-domain-name"
-                                               placeholder="请输入排序服务域名"
-                                               th:field="*{ordererDomainName}">
-                                        <small>请填写排序服务域名，如example.com。</small>
-                                    </div>
-                                </div>
-                                <div class="am-form-group">
-                                    <label for="username" class="am-u-sm-3 am-form-label">用户名称 <span
-                                            class="tpl-form-line-small-title">username</span></label>
-                                    <div class="am-u-sm-9">
-                                        <input type="text" class="tpl-form-input" id="username" placeholder="请输入访问用户名"
-                                               th:field="*{username}">
-                                        <small>请填写组织节点下访问用户名称，如Admin、User1。</small>
-                                    </div>
-                                </div>
-                                <div class="am-form-group">
-                                    <label for="crypto-config" class="am-u-sm-3 am-form-label">组织加密配置 <span
-                                            class="tpl-form-line-small-title">CryptoConfig</span></label>
-                                    <div class="am-u-sm-9">
-                                        <div class="am-form-group am-form-file">
-                                            <button type="button" class="am-btn am-btn-danger am-btn-sm"
-                                                    id="crypto-config">
-                                                <i class="am-icon-cloud-upload"></i> CryptoConfig所在目录的目录名称，是一个压缩包哦
-                                            </button>
-                                            <input id="doc-form-file" type="file" name="file">
-                                        </div>
-                                        <div id="file-list"></div>
-                                        <script>
-                                            $(function () {
-                                                $('#doc-form-file').on('change', function () {
-                                                    var fileNames = '';
-                                                    $.each(this.files, function () {
-                                                        fileNames += '<span class="am-badge">' + this.name + '</span> ';
-                                                    });
-                                                    $('#file-list').html(fileNames);
-                                                });
-                                            });
-                                        </script>
-                                        <small>请按照crypto-config目录结构将必要的证书文件打包在crypto-config.zip文件中。如测试，则直接以zip打包crypto-config上传即可。</small>
-                                    </div>
-                                </div>
+
                                 <div class="am-form-group">
                                     <label for="tls" class="am-u-sm-3 am-form-label">开启TLS <span
                                             class="tpl-form-line-small-title">tls</span></label>

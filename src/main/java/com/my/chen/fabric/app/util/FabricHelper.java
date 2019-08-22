@@ -5,18 +5,10 @@ import com.my.chen.fabric.app.domain.*;
 import com.my.chen.fabric.sdk.FbNetworkManager;
 import com.my.chen.fabric.sdk.OrgManager;
 import lombok.extern.slf4j.Slf4j;
-import org.hyperledger.fabric.sdk.ChaincodeID;
-import org.hyperledger.fabric.sdk.ProposalResponse;
-import org.hyperledger.fabric.sdk.QueryByChaincodeRequest;
-import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
-import org.hyperledger.fabric.sdk.exception.ProposalException;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * @author chenwei
@@ -79,13 +71,7 @@ public class FabricHelper {
     }
 
 
-    public FbNetworkManager get(OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chaincodeMapper,
-                             OrdererMapper ordererMapper, PeerMapper peerMapper) throws Exception {
-        return get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, -1);
-    }
-
-
-    public FbNetworkManager get(OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chaincodeMapper,
+    public FbNetworkManager get(LeagueMapper leagueMapper, OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chaincodeMapper,
                                 OrdererMapper ordererMapper, PeerMapper peerMapper, CA ca, int chaincodeId) throws Exception {
 
         this.chaincodeId = chaincodeId;
@@ -106,10 +92,13 @@ public class FabricHelper {
             List<Peer> peers = peerMapper.findByOrgId(orgId);
             List<Orderer> orderers = ordererMapper.findByOrgId(orgId);
             Org org = orgMapper.findById(orgId).get();
-
             log.info(String.format("org = %s", org.toString()));
+
+            League league = leagueMapper.findById(org.getLeagueId()).get();
+            log.info(String.format("league = %s", league.getName()));
+
             if (orderers.size() != 0 && peers.size() != 0) {
-                fabricManager = createFabricManager(org, channel, chaincode, orderers, peers);
+                fabricManager = createFabricManager(league, org, channel, chaincode, orderers, peers, ca);
                 fabricManagerMap.put(chaincodeId, fabricManager);
             }
 
@@ -198,24 +187,22 @@ public class FabricHelper {
 //    }
 
 
-    private static FbNetworkManager createFabricManager(Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers) throws Exception {
+    private static FbNetworkManager createFabricManager(League league, Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers, CA ca) throws Exception {
         OrgManager orgManager = new OrgManager();
         orgManager
-                .init(org.getId(), org.isTls())
-                .setUser(org.getUsername(), org.getCryptoConfigDir())
-                .setPeers(org.getName(), org.getMspId(), org.getDomainName())
-                .setOrderers(org.getOrdererDomainName())
+                .init(org.getId(), league.getName(), org.getName(), org.getMspId(), org.isTls())
+                .setUser(ca.getName(), ca.getSk(), ca.getCertificate())
                 .setChannel(channel.getName())
-                .setChainCode(chainCode.getName(), chainCode.getPath(), chainCode.getSource(), chainCode.getPolicy(), chainCode.getVersion(), chainCode.getProposalWaitTime(), chainCode.getInvokeWaitTime())
+                .setChainCode(chainCode.getName(), chainCode.getPath(), chainCode.getSource(), chainCode.getPolicy(), chainCode.getVersion(), chainCode.getProposalWaitTime(),1200)
                 .setBlockListener(map -> {
                     log.info("----------------------"+map.get("code"));
                     log.info("----------------------"+map.get("data"));
                 });
         for (Orderer orderer : orderers) {
-            orgManager.addOrderer(orderer.getName(), orderer.getLocation());
+            orgManager.addOrderer(orderer.getName(), orderer.getLocation(),orderer.getServerCrtPath(), orderer.getClientCertPath(), orderer.getClientKeyPath());
         }
         for (Peer peer : peers) {
-            orgManager.addPeer(peer.getName(), peer.getEventHubName(), peer.getLocation(), peer.getEventHubLocation(), peer.isEventListener());
+            orgManager.addPeer(peer.getName(), peer.getLocation(), peer.getEventHubLocation(), peer.getServerCrtPath(), peer.getClientCertPath(), peer.getClientKeyPath());
         }
         orgManager.add();
         return orgManager.use(org.getId());

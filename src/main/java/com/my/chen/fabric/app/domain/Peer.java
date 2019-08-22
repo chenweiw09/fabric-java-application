@@ -46,8 +46,6 @@ public class Peer implements Serializable {
     @Column
     private long updateTime;
 
-    private String eventHubName;
-
     private String orgName;
 
     private int channelCount;

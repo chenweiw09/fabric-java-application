@@ -58,23 +58,33 @@ public class FbStore {
     }
 
 
-    public FbUser getUser(String name, String orgName, String mspId, File privateKeyFile, File certificateFile) throws IOException {
-        FbUser user = userMap.get(FbUser.getKeyForFabricStoreName(name, orgName));
+    public FbUser getUser(String leagueName, String orgName, String name, String mspId, String privateKey, String certificate) throws IOException {
+        FbUser user = userMap.get(FbUser.getKeyForFabricStoreName(leagueName, orgName, name));
         if(user != null){
             log.info("read user from userMap,{}",user);
             return user;
         }
-
-        user = new FbUser(name, orgName, this);
+        user = new FbUser(leagueName, orgName, name, privateKey, certificate, this);
         user.setMspId(mspId);
-        CAEnrollment enrollment = getEnrollment(privateKeyFile, certificateFile);
+
+        CAEnrollment enrollment = new CAEnrollment(getPrivateKeyFromBytes(privateKey), certificate);
         user.setEnrollment(enrollment);
         user.saveState();
-        userMap.put(FbUser.getKeyForFabricStoreName(name, orgName), user);
+        userMap.put(FbUser.getKeyForFabricStoreName(leagueName, orgName,name), user);
         return user;
     }
 
 
+
+    private static PrivateKey getPrivateKeyFromBytes(String privateKeyStr) throws IOException {
+        final Reader pemReader = new StringReader(privateKeyStr);
+        final PrivateKeyInfo pemPair;
+        try (PEMParser pemParser = new PEMParser(pemReader)) {
+            pemPair = (PrivateKeyInfo) pemParser.readObject();
+        }
+        PrivateKey privateKey = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getPrivateKey(pemPair);
+        return privateKey;
+    }
 
     private Properties loadProperties() {
         Properties properties = new Properties();

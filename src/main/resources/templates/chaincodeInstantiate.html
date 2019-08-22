@@ -59,10 +59,25 @@
                             <form class="am-form tpl-form-line-form" th:action="@{instantiate(chaincodeId=${chaincodeId})}" th:method="post"
                                   enctype="multipart/form-data"
                                   th:object="${api}">
+
                                 <div class="am-form-group">
-                                    <label for="user-intro" class="am-u-sm-3 am-form-label">实例化参数</label>
+                                    <label for="ca" class="am-u-sm-3 am-form-label">CA证书 <span
+                                            class="tpl-form-line-small-title">ca</span></label>
                                     <div class="am-u-sm-9">
-                                        <textarea class="" rows="10" id="user-intro" placeholder="请输入以半角逗号分隔的字符串数组，如：“a,b,10“。该数组将作为智能合约实例化参数，若无则留空。" th:field="*{exec}"></textarea>
+                                        <select id="ca" class="form-control custom-select" th:field="*{flag}">
+                                            <option th:each="ca: ${cas}" th:value="${ca.flag}"
+                                                    th:text="${ca.leagueName}+'-'+${ca.orgName}+'-'+${ca.peerName}+'-'+${ca.name}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="am-form-group">
+                                    <label for="exec" class="am-u-sm-3 am-form-label">智能合约版本 <span
+                                            class="tpl-form-line-small-title">version</span></label>
+                                    <div class="am-u-sm-9">
+                                        <input type="text" class="tpl-form-input" id="exec"
+                                               placeholder="请输入以半角逗号分隔的字符串数组，如：“a,b,10“。该数组将作为智能合约实例化参数，若无则留空。"
+                                               th:field="*{exec}">
                                     </div>
                                 </div>
                                 <div class="am-form-group">

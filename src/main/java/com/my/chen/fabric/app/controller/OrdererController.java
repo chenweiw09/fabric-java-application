@@ -6,8 +6,8 @@ import com.my.chen.fabric.app.domain.Org;
 import com.my.chen.fabric.app.service.LeagueService;
 import com.my.chen.fabric.app.service.OrdererService;
 import com.my.chen.fabric.app.service.OrgService;
-import com.my.chen.fabric.app.util.DateUtil;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -34,14 +34,17 @@ public class OrdererController {
     @PostMapping(value = "submit")
     public ModelAndView submit(@ModelAttribute Orderer orderer,
                                @RequestParam("intent") String intent,
+                               @RequestParam("serverCrtFile") MultipartFile serverCrtFile,
+                               @RequestParam("clientCertFile") MultipartFile clientCertFile,
+                               @RequestParam("clientKeyFile") MultipartFile clientKeyFile,
                                @RequestParam("id") int id) {
         switch (intent) {
             case "add":
-                ordererService.add(orderer);
+                ordererService.add(orderer,serverCrtFile, clientCertFile, clientKeyFile);
                 break;
             case "edit":
                 orderer.setId(id);
-                ordererService.update(orderer);
+                ordererService.update(orderer,serverCrtFile, clientCertFile, clientKeyFile);
                 break;
         }
         return new ModelAndView(new RedirectView("list"));
@@ -55,7 +58,7 @@ public class OrdererController {
         modelAndView.addObject("submit", "新增");
         modelAndView.addObject("intent", "add");
         modelAndView.addObject("orderer", new Orderer());
-        modelAndView.addObject("orgs", getForPeerAndOrderer());
+        modelAndView.addObject("orgs", orgService.getAllPartOrg());
         return modelAndView;
     }
 
@@ -68,7 +71,7 @@ public class OrdererController {
         modelAndView.addObject("intent", "edit");
         Orderer orderer = ordererService.get(id);
         League league = leagueService.getById(orgService.get(orderer.getOrgId()).getLeagueId());
-        List<Org> orgs = orgService.listById(league.getId());
+        List<Org> orgs = orgService.listByLeagueId(league.getId());
         for (Org org : orgs) {
             org.setLeagueName(league.getName());
         }
@@ -82,7 +85,9 @@ public class OrdererController {
         ModelAndView modelAndView = new ModelAndView("orderers");
         List<Orderer> orderers = ordererService.listAll();
         for (Orderer orderer : orderers) {
-            orderer.setOrgName(orgService.get(orderer.getOrgId()).getName());
+            Org org = orgService.get(orderer.getOrgId());
+            orderer.setOrgName(org.getName());
+            orderer.setLeagueName(leagueService.getById(org.getLeagueId()).getName());
         }
         modelAndView.addObject("orderers", orderers);
         return modelAndView;
@@ -92,14 +97,6 @@ public class OrdererController {
     public ModelAndView delOrderer(@RequestParam("id") int id){
         ordererService.del(id);
         return new ModelAndView(new RedirectView("list"));
-    }
-
-    private List<Org> getForPeerAndOrderer() {
-        List<Org> orgs = orgService.listAll();
-        for (Org org : orgs) {
-            org.setLeagueName(leagueService.getById(org.getLeagueId()).getName());
-        }
-        return orgs;
     }
 
 }

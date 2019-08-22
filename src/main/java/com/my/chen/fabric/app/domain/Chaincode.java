@@ -43,9 +43,6 @@ public class Chaincode implements Serializable {
     private int proposalWaitTime;
 
     @Column
-    private int invokeWaitTime;
-
-    @Column
     private int channelId;
 
     @Column(length = 2)
@@ -59,7 +56,6 @@ public class Chaincode implements Serializable {
 
     @Column(length = 128)
     private String callbackLocation;
-
 
     @Column(length = 512)
     private String events;

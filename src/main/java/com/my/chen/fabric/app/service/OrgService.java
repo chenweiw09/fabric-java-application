@@ -77,6 +77,15 @@ public class OrgService {
     }
 
 
+    public List<Org> getAllPartOrg(){
+        List<Org> list = Lists.newArrayList(orgMapper.findAll());
+        for (Org org : list) {
+            org.setLeagueName(leagueMapper.findById(org.getLeagueId()).get().getName());
+        }
+        return list;
+    }
+
+
     public int delOrgByid(int orgId){
         Org org =  orgMapper.findById(orgId).get();
         int ordererCount = ordererMapper.countByOrgId(org.getId());

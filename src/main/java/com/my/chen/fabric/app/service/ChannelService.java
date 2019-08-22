@@ -73,6 +73,14 @@ public class ChannelService {
         return 1;
     }
 
+    public int updateChannelHeight(int channelId, int height){
+
+        Channel channel = channelMapper.findById(channelId).get();
+        channel.setHeight(height);
+        channelMapper.save(channel);
+        return 1;
+    }
+
 
     public List<Channel> listAll() {
         return Lists.newArrayList(channelMapper.findAll());

@@ -2,11 +2,10 @@ package com.my.chen.fabric.app.service;
 
 
 import com.google.common.collect.Lists;
-import com.my.chen.fabric.app.dao.ChaincodeMapper;
-import com.my.chen.fabric.app.dao.ChannelMapper;
-import com.my.chen.fabric.app.dao.OrdererMapper;
-import com.my.chen.fabric.app.dao.PeerMapper;
+import com.my.chen.fabric.app.dao.*;
+import com.my.chen.fabric.app.domain.League;
 import com.my.chen.fabric.app.domain.Orderer;
+import com.my.chen.fabric.app.domain.Org;
 import com.my.chen.fabric.app.util.DateUtil;
 import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.app.util.FileUtil;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -34,6 +34,12 @@ public class OrdererService {
     private ChaincodeMapper chaincodeMapper;
 
     @Resource
+    private OrgMapper orgMapper;
+
+    @Resource
+    private LeagueMapper leagueMapper;
+
+    @Resource
     private FileManageService manageService;
 
 
@@ -45,6 +51,7 @@ public class OrdererService {
         if (StringUtils.isNotEmpty(serverCrtFile.getOriginalFilename()) && StringUtils.isNotEmpty(clientCertFile.getOriginalFilename())
                 && StringUtils.isNotEmpty(clientKeyFile.getOriginalFilename())) {
 
+            resetOrderer(orderer);
             boolean flag = saveOrderCertFile(orderer, serverCrtFile, clientCertFile, clientKeyFile);
             if (!flag) {
                 return 0;
@@ -63,7 +70,7 @@ public class OrdererService {
         String ordererTlsPath = manageService.getOrdererPath(orderer.getLeagueName(), orderer.getOrgName(), orderer.getName());
 
         if (serverCrtFile != null && StringUtils.isNotEmpty(serverCrtFile.getOriginalFilename())) {
-            String serverCrtPath = String.format("%s%s", ordererTlsPath, serverCrtFile.getOriginalFilename());
+            String serverCrtPath = String.format("%s%s%s", ordererTlsPath, File.separator, serverCrtFile.getOriginalFilename());
             orderer.setServerCrtPath(serverCrtPath);
             try {
                 FileUtil.saveFile(serverCrtFile, serverCrtPath);
@@ -74,7 +81,7 @@ public class OrdererService {
         }
 
         if (clientCertFile != null && StringUtils.isNotEmpty(clientCertFile.getOriginalFilename())) {
-            String clientCertPath = String.format("%s%s", ordererTlsPath, clientCertFile.getOriginalFilename());
+            String clientCertPath = String.format("%s%s%s", ordererTlsPath, File.separator, clientCertFile.getOriginalFilename());
             orderer.setClientCertPath(clientCertPath);
             try {
                 FileUtil.saveFile(clientCertFile, clientCertPath);
@@ -86,7 +93,7 @@ public class OrdererService {
 
 
         if (clientKeyFile != null && StringUtils.isNotEmpty(clientKeyFile.getOriginalFilename())) {
-            String clientKeyPath = String.format("%s%s", ordererTlsPath, clientKeyFile.getOriginalFilename());
+            String clientKeyPath = String.format("%s%s%s", ordererTlsPath,File.separator, clientKeyFile.getOriginalFilename());
             orderer.setClientKeyPath(clientKeyPath);
             try {
                 FileUtil.saveFile(clientKeyFile, clientKeyPath);
@@ -100,9 +107,13 @@ public class OrdererService {
     }
 
 
+    // 如果update修改完成后，需要做对应的证书文件调整
     public int update(Orderer orderer, MultipartFile serverCrtFile, MultipartFile clientCertFile, MultipartFile clientKeyFile) {
         FabricHelper.getInstance().removeManager(peerMapper.findByOrgId(orderer.getOrgId()), channelMapper, chaincodeMapper);
         Orderer entity = ordererMapper.findById(orderer.getId()).get();
+
+        resetOrderer(orderer);
+
         saveOrderCertFile(orderer, serverCrtFile,clientCertFile,clientKeyFile);
 
         if(StringUtils.isBlank(orderer.getServerCrtPath())){
@@ -150,5 +161,13 @@ public class OrdererService {
 
     public int count() {
         return (int) ordererMapper.count();
+    }
+
+
+    public void resetOrderer(Orderer orderer) {
+        Org org = orgMapper.findById(orderer.getOrgId()).get();
+        League league = leagueMapper.findById(org.getLeagueId()).get();
+        orderer.setLeagueName(league.getName());
+        orderer.setOrgName(org.getMspId());
     }
 }

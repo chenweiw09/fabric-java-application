@@ -47,33 +47,24 @@ public class CommonController {
     @GetMapping(value = "index")
     public ModelAndView index() {
         ModelAndView modelAndView = new ModelAndView("index");
-        int leagueCount = 0;
-        int orgCount = 0;
-        int ordererCount = 0;
-        int peerCount = 0;
-        int channelCount = 0;
-        int chaincodeCount = 0;
+        getCount(modelAndView);
+
+
         List<Transaction> tmpTransactions = new ArrayList<>();
         List<Transaction> transactions = new ArrayList<>();
-        leagueCount = leagueService.listAll().size();
-        orgCount = orgService.count();
-        ordererCount = ordererService.count();
-        peerCount = peerService.count();
-        channelCount = channelService.count();
-        chaincodeCount = chaincodeService.count();
 
         List<Channel> channels = channelService.listAll();
         for (Channel channel : channels) {
             List<Chaincode> chaincodes = chaincodeService.listById(channel.getId());
             for (Chaincode chaincode: chaincodes) {
                 try {
-                    JSONObject blockInfo = JSON.parseObject(traceService.queryBlockChainInfo(chaincode.getId()));
+                    JSONObject blockInfo = traceService.queryBlockChainInfo(chaincode.getId(),chaincode.getFlag());
                     int height = blockInfo.getJSONObject("data").getInteger("height");
                     for (int num = height - 1; num >= 0; num--) {
                         Trace trace = new Trace();
                         trace.setId(chaincode.getId());
                         trace.setTrace(String.valueOf(num));
-                        JSONObject blockMessage = JSON.parseObject(traceService.queryBlockByNumber(trace));
+                        JSONObject blockMessage = traceService.queryBlockByNumber(trace);
                         getTmpTransactions(blockMessage, tmpTransactions);
 
                         if ((height - num) > 6) {
@@ -102,17 +93,28 @@ public class CommonController {
             transaction.setIndex(i + 1);
             transactions.add(transaction);
         }
+
+        modelAndView.addObject("transactions", transactions);
+
+        return modelAndView;
+    }
+
+
+
+    private void getCount(ModelAndView modelAndView){
+        int leagueCount = leagueService.listAll().size();
+        int orgCount =orgService.count();
+        int ordererCount = ordererService.count();
+        int peerCount = peerService.count();
+        int channelCount = channelService.count();
+        int chaincodeCount = chaincodeService.count();
         modelAndView.addObject("leagueCount", leagueCount);
         modelAndView.addObject("orgCount", orgCount);
         modelAndView.addObject("ordererCount", ordererCount);
         modelAndView.addObject("peerCount", peerCount);
         modelAndView.addObject("channelCount", channelCount);
         modelAndView.addObject("chaincodeCount", chaincodeCount);
-        modelAndView.addObject("transactions", transactions);
-
-        return modelAndView;
     }
-
 
 
     private void getTmpTransactions(JSONObject blockMessage, List<Transaction> tmpTransactions){
@@ -134,8 +136,6 @@ public class CommonController {
                 transaction.setDate(envelope.getString("timestamp"));
                 tmpTransactions.add(transaction);
             }
-
-
         }
     }
 }

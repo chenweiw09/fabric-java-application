@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.fabric.sdk.User;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -30,6 +31,9 @@ public class FbOrg {
     /** 当前指定的组织名称，如：Org1MSP */
     private String orgMSPID;
 
+    private String orgName;
+
+    private String leagueName;
 
     /** orderer 集合 */
     private List<FbOrderer> orderers = new LinkedList<>();
@@ -45,17 +49,16 @@ public class FbOrg {
     /** 事件监听 */
     private BlockListener blockListener;
 
-
     private Map<String, User> userMap = new HashMap<>();
 
     /** 一个组织可能维护了多个智能合约对象 */
     private List<FbChainCode> chainCodes = new LinkedList<>();
 
-
     private String eventNames;
 
     private ChaincodeEventListener chaincodeEventListener;
 
+    private FbStore fabricStore;
 
 
     /** 新增节点服务器 */
@@ -66,6 +69,16 @@ public class FbOrg {
     /** 新增排序服务器 */
     void addOrderer(String name, String location, String serverCrtPath, String clientCertPath, String clientKeyPath) {
         orderers.add(new FbOrderer(name, location, serverCrtPath,clientCertPath,clientKeyPath));
+    }
+
+    void addUser(String userName, String skPath, String certificatePath) {
+        try {
+            String mspid = getOrgMSPID();
+            FbUser user = getFabricStore().getUser(getLeagueName(), getOrgName(), userName, mspid, skPath, certificatePath);
+            userMap.put(userName, user);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -87,7 +100,7 @@ public class FbOrg {
 
     /**
      * 获取 peer 节点的管理员
-     * @param fbStore
+     * @param
      */
 //    public void init(FbStore fbStore) throws IOException {
 //        setPeerAdmin(fbStore);

@@ -76,6 +76,7 @@
                                             class="tpl-form-line-small-title">Name</span></label>
                                     <div class="am-u-sm-9">
                                         <input type="text" class="tpl-form-input" id="host" placeholder="请输入合约名称"
+                                               onblur="check('host')"
                                                th:field="*{name}">
                                         <input type="hidden" name="intent" th:value="${intent}"/>
                                         <input type="hidden" name="id" th:value="${chaincode.id}"/>
@@ -88,6 +89,7 @@
                                     <div class="am-u-sm-9">
                                         <input type="text" class="tpl-form-input" id="chaincode-path"
                                                placeholder="请输入智能合约路径"
+                                               onblur="check('chaincode-path')"
                                                th:field="*{path}">
                                         <small>
                                             请输入智能合约路径，如github.com/hyperledger/fabric/aberic/chaincode/go/chaincode_example02。
@@ -100,6 +102,7 @@
                                     <div class="am-u-sm-9">
                                         <input type="text" class="tpl-form-input" id="version"
                                                placeholder="请输入智能合约版本"
+                                               onblur="check('version')"
                                                th:field="*{version}">
                                         <small>请填写智能合约版本，如1.0。</small>
                                     </div>
@@ -110,20 +113,44 @@
                                     <div class="am-u-sm-9">
                                         <input type="text" class="tpl-form-input" id="proposal-wait-time"
                                                placeholder="单个提案请求的超时时间以毫秒为单位"
+                                               onblur="check('proposalWaitTime')"
                                                th:field="*{proposalWaitTime}">
                                         <small>默认90s。</small>
                                     </div>
                                 </div>
+
                                 <div class="am-form-group">
-                                    <label for="invoke-wait-time" class="am-u-sm-3 am-form-label">事务等待时间 <span
-                                            class="tpl-form-line-small-title">invoke wait time</span></label>
+                                    <label for="chaincodeListener" class="am-u-sm-3 am-form-label">链码事件监听<span
+                                            class="tpl-form-line-small-title">chaincodeListener</span></label>
+                                    <label class="custom-switch" id="chaincodeListener">
+                                        <input type="checkbox"
+                                               name="custom-switch-checkbox"
+                                               th:field="*{chaincodeEventListener}"
+                                               class="custom-switch-input"
+                                               onclick="switchBtnBind($(this))"
+                                               id="blockListener">
+                                        <span class="custom-switch-description">启用</span>
+                                    </label>
+                                </div>
+
+                                <div class="am-form-group" id="location_group" style="display: none">
+                                    <label for="callbackLocation" class="am-u-sm-3 am-form-label">链码事件监听回调地址<span
+                                            class="tpl-form-line-small-title">callback</span></label>
                                     <div class="am-u-sm-9">
-                                        <input type="text" class="tpl-form-input" id="invoke-wait-time"
-                                               placeholder="事务等待时间以秒为单位"
-                                               th:field="*{invokeWaitTime}">
-                                        <small>默认120s。</small>
+                                        <input type="text" class="tpl-form-input" id="callbackLocation" placeholder="该地址将会接收一个post请求，如http://www.x.com/chaincode/callback"
+                                               onblur="check('callbackLocation')" th:field="*{callbackLocation}">
                                     </div>
                                 </div>
+
+                                <div class="am-form-group" id="event_group" style="display: none">
+                                    <label for="event-group-sl" class="am-u-sm-3 am-form-label">链码监听事件名集合<span
+                                            class="tpl-form-line-small-title">events</span></label>
+                                    <div class="am-u-sm-9">
+                                        <input type="text" class="tpl-form-input" id="event-group-sl" placeholder="以半角逗号分隔，如aEvent,bEvent"
+                                               onblur="check('events')" th:field="*{events}">
+                                    </div>
+                                </div>
+
                                 <div class="am-form-group">
                                     <div class="am-u-sm-9 am-u-sm-push-3">
                                         <button type="submit" class="am-btn am-btn-primary tpl-btn-bg-color-success "
@@ -143,7 +170,60 @@
 <script src="/static/js/amazeui.datatables.min.js"></script>
 <script src="/static/js/dataTables.responsive.min.js"></script>
 <script src="/static/js/app.js"></script>
+<script src="https://unpkg.com/ionicons@4.2.4/dist/ionicons.js"></script>
+<script>
+    function check(idStr){
+        var that = $("#"+idStr)
+        var parent = that.parent()
+        if(that.val().trim()==""){
+            var msg;
+            if(idStr=="name"){
+                msg = "名称不能为空"
+            }else if(idStr=="path"){
+                msg="安装路径不能为空"
+            }else if(idStr=="version"){
+                msg="版本不能为空"
+            }else if(idStr=="proposalWaitTime"){
+                msg="提案超时时间不能为空"
+            }
 
+            that.addClass("is-invalid")
+            if(parent.children("[name='nameError']").length==0){
+                parent.append('<div name="nameError" class="invalid-feedback">'+msg+'</div>')
+            }
+            return false;
+        }else{
+            that.removeClass("is-invalid")
+            parent.children("[name='nameError']").remove();
+            return true
+        }
+    }
+
+    function switchBtnBind(that) {
+        var checked = that.is(".custom-switch-input:checked")
+
+        //打开状态，此时显示
+        if (checked) {
+            $("#location_group").attr("style", "display:block;");
+            $("#event_group").attr("style", "display:block;");
+        } else {
+            $("#location_group").attr("style", "display:none;");
+            $("#event_group").attr("style", "display:none;");
+        }
+    }
+
+
+    require(['c3', 'jquery'], function (c3, $) {
+
+        $(document).ready(function () {
+            $("#submitBtn").click(function(){
+                return check("name") && check("path")
+                    && check("version")&& check("proposalWaitTime")
+            })
+            switchBtnBind($('#chaincodeEventListener'))
+        })
+    });
+</script>
 </body>
 
 </html>

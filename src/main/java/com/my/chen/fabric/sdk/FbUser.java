@@ -29,18 +29,22 @@ public class FbUser implements User, Serializable {
 
     private transient FbStore fabricStore;
     private String keyForFabricStoreName;
+    private String skPath;
+    private String certificatePath;
 
 
-    public FbUser(String name, String orgName, FbStore fabricStore) {
+    public FbUser(String leagueName, String orgName, String name, String skPath, String certificatePath, FbStore fabricStore) {
         this.name = name;
         this.orgName = orgName;
         this.fabricStore = fabricStore;
-        this.keyForFabricStoreName = getKeyForFabricStoreName(name, orgName);
+        this.skPath = skPath;
+        this.certificatePath = certificatePath;
+        this.keyForFabricStoreName = getKeyForFabricStoreName(leagueName, orgName, name);
 
         String userStr = fabricStore.getValue(keyForFabricStoreName);
-        if(null != userStr){
+        if (null != userStr) {
             saveState();
-        }else {
+        } else {
             restoreState();
         }
     }
@@ -63,7 +67,7 @@ public class FbUser implements User, Serializable {
     /**
      * 这里是恢复当前的用户信息
      */
-    private void restoreState(){
+    private void restoreState() {
         String memberStr = fabricStore.getValue(keyForFabricStoreName);
         if (null != memberStr) {
             // 用户在键值存储中被找到，因此恢复状态
@@ -118,10 +122,6 @@ public class FbUser implements User, Serializable {
         return mspId;
     }
 
-    public FbStore getFabricStore() {
-        return fabricStore;
-    }
-
     public String getOrgName() {
         return orgName;
     }
@@ -136,8 +136,9 @@ public class FbUser implements User, Serializable {
         saveState();
     }
 
-    static String getKeyForFabricStoreName(String name, String org) {
-        System.out.println("toKeyValStoreName = " + "user." + name + org);
-        return "user." + name + org;
+    static String getKeyForFabricStoreName(String leagueName, String orgName, String name) {
+        String key = String.format("toKeyValStoreName = user.%s%s%s", leagueName, orgName, name);
+        return key;
     }
+
 }

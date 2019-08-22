@@ -1,5 +1,6 @@
 package com.my.chen.fabric.app.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.my.chen.fabric.app.dto.Trace;
 import com.my.chen.fabric.app.service.TraceService;
 import org.springframework.web.bind.annotation.*;
@@ -20,23 +21,23 @@ public class TraceController {
     private TraceService traceService;
 
     @PostMapping(value = "txid")
-    public String queryBlockByTransactionID(@RequestBody Trace trace) {
+    public JSONObject queryBlockByTransactionID(@RequestBody Trace trace) {
         return traceService.queryBlockByTransactionID(trace);
     }
 
     @PostMapping(value = "hash")
-    public String queryBlockByHash(@RequestBody Trace trace) {
+    public JSONObject queryBlockByHash(@RequestBody Trace trace) {
         return traceService.queryBlockByHash(trace);
     }
 
     @PostMapping(value = "number")
-    public String queryBlockByNumber(@RequestBody Trace trace) {
+    public JSONObject queryBlockByNumber(@RequestBody Trace trace) {
         return traceService.queryBlockByNumber(trace);
     }
 
-    @GetMapping(value = "info/{id}")
-    public String queryBlockChainInfo(@PathVariable("id") int id) {
-        return traceService.queryBlockChainInfo(id);
+    @GetMapping(value = "info/{id}/{key}")
+    public JSONObject queryBlockChainInfo(@PathVariable("id") int id, @PathVariable("key")String key) {
+        return traceService.queryBlockChainInfo(id,key);
     }
 
 }

@@ -34,6 +34,7 @@
     <div th:include="common_sidebar :: sidebar"></div>
     <!-- 内容区域 -->
     <div class="tpl-content-wrapper">
+
         <div class="row-content am-cf">
             <div class="row">
                 <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
@@ -52,11 +53,14 @@
                                                     <span class="am-icon-plus"></span> 新增
                                                 </button>
                                             </a>-->
-                                            <a href="/chaincode/install">
-                                                <button type="button" class="am-btn am-btn-default am-btn-success">
-                                                    <span class="am-icon-plus"></span> 安装
-                                                </button>
-                                            </a>
+                                            <!--<a href="/chaincode/install">-->
+                                                <!--<button type="button" class="am-btn am-btn-default am-btn-success">-->
+                                                    <!--<span class="am-icon-plus"></span> 安装-->
+                                                <!--</button>-->
+                                            <!--</a>-->
+                                            <button type="button" class="am-btn am-btn-default am-btn-success"
+                                                    onclick="window.location.href='/chaincode/install'"><span class="am-icon-plus"></span> 安装
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -72,6 +76,7 @@
                                         <th>通道名称</th>
                                         <th>版本号</th>
                                         <th>合约路径</th>
+                                        <th>提案超时时间</th>
                                         <th>是否已安装</th>
                                         <th>是否已实例化</th>
                                         <th>创建时间</th>
@@ -86,6 +91,7 @@
                                         <td th:text="${chaincode.channelName}">通道名称</td>
                                         <td th:text="${chaincode.version}">版本号</td>
                                         <td th:text="${chaincode.source}+'\\'+${chaincode.path}">合约路径</td>
+                                        <td th:text="${chaincode.proposalWaitTime}">提案超时时间</td>
                                         <td th:if="${chaincode.installed} eq 1">是</td>
                                         <td th:if="${chaincode.installed} eq 0">否</td>
                                         <td th:if="${chaincode.instantiated} eq 1">是</td>
@@ -104,6 +110,11 @@
                                                 <a th:if="${chaincode.instantiated} eq 0" th:href="@{/chaincode/instantiate(chaincodeId=${chaincode.id})}">
                                                     <i class="am-icon-pencil"></i> 实例化
                                                 </a>
+
+                                                <a th:href="@{/chaincode/upgrade(id=${chaincode.id})}">
+                                                    <i class="am-icon-pencil"></i> 升级
+                                                </a>
+
                                                 <a th:href="@{/chaincode/verify(chaincodeId=${chaincode.id})}"
                                                    class="tpl-table-black-operation-del">
                                                     <i class="am-icon-trash"></i> 测试
@@ -111,7 +122,7 @@
 
                                                 <a th:if="${chaincode.installed} eq 0 and ${chaincode.instantiated} eq 0"
                                                    th:href="@{/chaincode/del(chaincodeId=${chaincode.id})}"
-                                                   class="tpl-table-black-operation-del">
+                                                   class="tpl-table-black-operation-del" onclick="doDelete()">
                                                     <i class="am-icon-trash"></i> 删除
                                                 </a>
 
@@ -133,7 +144,12 @@
 <script src="/static/js/amazeui.datatables.min.js"></script>
 <script src="/static/js/dataTables.responsive.min.js"></script>
 <script src="/static/js/app.js"></script>
-
+<script>
+    function doDelete(){
+        var c = confirm("是否删除？")
+        return c
+    }
+</script>
 </body>
 
 </html>

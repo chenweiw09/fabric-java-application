@@ -13,10 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -91,9 +87,6 @@ public class FbChainCode {
         }
     }
 
-    public void setChaincodeLanguage(TransactionRequest.Type chaincodeLanguage) {
-        this.chaincodeLanguage = chaincodeLanguage;
-    }
 
     public void setProposalWaitTime(int proposalWaitTime) {
         this.proposalWaitTime = proposalWaitTime;
@@ -131,7 +124,7 @@ public class FbChainCode {
      * @param org
      * @param args
      */
-    JSONObject instantiate(FbOrg org, String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
+    JSONObject instantiate(FbOrg org, String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException {
         InstantiateProposalRequest instantiateProposalRequest = org.getClient().getClient().newInstantiationProposalRequest();
         instantiateProposalRequest.setChaincodeID(chaincodeID);
         instantiateProposalRequest.setProposalWaitTime(proposalWaitTime);
@@ -160,7 +153,7 @@ public class FbChainCode {
      * @param org  中继组织对象
      * @param args 初始化参数数组
      */
-    JSONObject upgrade(FbOrg org, String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
+    JSONObject upgrade(FbOrg org, String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException {
         UpgradeProposalRequest upgradeProposalRequest = org.getClient().getClient().newUpgradeProposalRequest();
         upgradeProposalRequest.setChaincodeID(chaincodeID);
         upgradeProposalRequest.setProposalWaitTime(proposalWaitTime);
@@ -189,7 +182,7 @@ public class FbChainCode {
      * @param fcn  方法名
      * @param args 参数数组
      */
-    JSONObject invoke(FbOrg org, String fcn, String[] args) throws InvalidArgumentException, ProposalException, IOException, InterruptedException, ExecutionException, TimeoutException {
+    JSONObject invoke(FbOrg org, String fcn, String[] args) throws InvalidArgumentException, ProposalException, IOException{
         /// Send transaction proposal to all peers
         TransactionProposalRequest transactionProposalRequest = org.getClient().getClient().newTransactionProposalRequest();
         transactionProposalRequest.setChaincodeID(chaincodeID);
@@ -235,8 +228,7 @@ public class FbChainCode {
     }
 
 
-    private JSONObject toOrdererResponse(Collection<ProposalResponse> proposalResponses, FbOrg org) throws InvalidArgumentException, UnsupportedEncodingException, InterruptedException, ExecutionException, TimeoutException {
-
+    private JSONObject toOrdererResponse(Collection<ProposalResponse> proposalResponses, FbOrg org) throws InvalidArgumentException, UnsupportedEncodingException{
         JSONObject result = new JSONObject();
 
         Collection<ProposalResponse> successful = new LinkedList<>();

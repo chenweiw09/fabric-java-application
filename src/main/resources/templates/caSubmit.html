@@ -4,15 +4,15 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>新增通道</title>
-    <meta name="description" content="新增通道">
-    <meta name="keywords" content="新增通道">
+    <title>新增CA</title>
+    <meta name="description" content="新增CA">
+    <meta name="keywords" content="新增CA">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="renderer" content="webkit">
     <meta http-equiv="Cache-Control" content="no-siteapp"/>
     <link rel="icon" type="image/png" href="/static/i/favicon.png">
     <link rel="apple-touch-icon-precomposed" href="/static/i/app-icon72x72@2x.png">
-    <meta name="apple-mobile-web-app-title" content="新增通道"/>
+    <meta name="apple-mobile-web-app-title" content="新增CA"/>
     <script src="/static/js/echarts.min.js"></script>
     <link rel="stylesheet" href="/static/css/amazeui.min.css"/>
     <link rel="stylesheet" href="/static/css/amazeui.datatables.min.css"/>
@@ -42,7 +42,7 @@
                                                            th:text="${intentLarge}"></span>
                         <small>HyperLedger Fabric网络通道单元</small>
                     </div>
-                    <p class="page-header-description">新增通道，即写入一个Fabric网络中所属节点服务器上已经加入过的通道。</p>
+                    <p class="page-header-description">新增证书，即向一个Fabric网络中所属节点添加已经认证的证书。</p>
                 </div>
             </div>
         </div>
@@ -57,7 +57,7 @@
                         <div class="widget-body am-fr">
 
                             <form class="am-form tpl-form-line-form" th:action="@{submit}" th:method="post"
-                                  enctype="multipart/form-data" th:object="${channel}">
+                                  enctype="multipart/form-data" th:object="${ca}">
                                 <div class="am-form-group">
                                     <label for="peer-name" class="am-u-sm-3 am-form-label">节点 <span
                                             class="tpl-form-line-small-title">peer</span></label>
@@ -70,41 +70,73 @@
                                         </select>
                                     </div>
                                 </div>
+
                                 <div class="am-form-group">
-                                    <label for="name" class="am-u-sm-3 am-form-label">通道名称 <span
-                                            class="tpl-form-line-small-title">Name</span></label>
+                                    <label for="name" class="am-u-sm-3 am-form-label">CA名字 </label>
                                     <div class="am-u-sm-9">
-                                        <input type="text" class="tpl-form-input" id="name" placeholder="请输入通道名称"
-                                               onblur="check('name')" th:field="*{name}">
+                                        <input type="text" class="tpl-form-input" placeholder="请输入CA名字"
+                                               th:field="*{name}" id="name" onblur="check('name')">
                                         <input type="hidden" name="intent" th:value="${intent}"/>
-                                        <input type="hidden" name="id" th:value="${channel.id}"/>
-                                        <small>请输入通道名称，如mychannel。</small>
+                                        <input type="hidden" name="id" th:value="${ca.id}"/>
+                                        <input type="hidden" name="flag" th:value="${ca.flag}"/>
+                                        <small>请输入CA的用户名，如：Admin</small>
                                     </div>
                                 </div>
-
 
                                 <div class="am-form-group">
-                                    <label for="checkbox-listener" class="am-u-sm-3 am-form-label">同步区块监听 <span
-                                            class="tpl-form-line-small-title">blockListener</span></label>
-                                    <label class="custom-switch" id="checkbox-listener">
-                                        <input type="checkbox"
-                                               name="custom-switch-checkbox"
-                                               th:field="*{blockListener}"
-                                               class="custom-switch-input"
-                                               onclick="switchBtnBind($(this))"
-                                               id="blockListener">
-                                        <span class="custom-switch-description">启用</span>
-                                    </label>
-                                </div>
-
-                                <div class="am-form-group" id="location_group" style="display: none">
-                                    <label for="callbackLocation" class="am-u-sm-3 am-form-label">同步区块监听回调地址 <span
-                                            class="tpl-form-line-small-title">callback</span></label>
+                                    <label for="sk-file" class="am-u-sm-3 am-form-label">CA sk文件</label>
                                     <div class="am-u-sm-9">
-                                    <input type="text" class="tpl-form-input" id="callbackLocation" placeholder="该地址将会接收一个post请求，如http://www.x.com/blocklistener"
-                                           onblur="check('callbackLocation')" th:field="*{callbackLocation}">
+                                        <div class="am-form-group am-form-file">
+                                            <button type="button" class="am-btn am-btn-danger am-btn-sm"
+                                                    id="sk-file">
+                                                <i class="am-icon-cloud-upload"></i>CA sk文件
+                                            </button>
+                                            <input id="doc-form-source-file" type="file" name="skFile">
+                                            <div id="file-list-source"></div>
+                                            <script>
+                                                $(function () {
+                                                    $('#doc-form-source-file').on('change', function () {
+                                                        var fileNames = '';
+                                                        $.each(this.files, function () {
+                                                            fileNames += '<span class="am-badge">' + this.name + '</span> ';
+                                                        });
+                                                        $('#file-list-source').html(fileNames);
+                                                    });
+                                                });
+                                            </script>
+                                            <small>上传带有节点签名密钥的PEM文件——sk</small>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <div class="am-form-group">
+                                    <label for="certificate-file" class="am-u-sm-3 am-form-label">CA
+                                        Certificate</label>
+                                    <div class="am-u-sm-9">
+                                        <div class="am-form-group am-form-file">
+                                            <button type="button" class="am-btn am-btn-danger am-btn-sm"
+                                                    id="certificate-file">
+                                                <i class="am-icon-cloud-upload"></i>CA Certificate
+                                            </button>
+                                            <input id="doc-ca-cert-file" type="file" name="certificateFile">
+                                            <div id="file-list-source-ca-cert"></div>
+                                            <script>
+                                                $(function () {
+                                                    $('#doc-ca-cert-file').on('change', function () {
+                                                        var fileNames = '';
+                                                        $.each(this.files, function () {
+                                                            fileNames += '<span class="am-badge">' + this.name + '</span> ';
+                                                        });
+                                                        $('#file-list-source-ca-cert').html(fileNames);
+                                                    });
+                                                });
+                                            </script>
+                                            <small>上传带有节点的X.509证书的PEM文件——certificate</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+
 
                                 <div class="am-form-group">
                                     <div class="am-u-sm-9 am-u-sm-push-3">
@@ -135,8 +167,6 @@
             var msg;
             if(idStr=="name"){
                 msg = "名称不能为空"
-            }else if(idStr == "callbackLocation"){
-                msg = "回调地址不能为空"
             }
             that.addClass("is-invalid")
             if(parent.children("[name='nameError']").length==0){

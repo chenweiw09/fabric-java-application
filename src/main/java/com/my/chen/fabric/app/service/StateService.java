@@ -7,6 +7,7 @@ import com.my.chen.fabric.app.dto.State;
 import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.sdk.FbNetworkManager;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -32,6 +33,9 @@ public class StateService implements BaseService {
 
     @Resource
     private CAMapper caMapper;
+
+    @Resource
+    private LeagueMapper leagueMapper;
 
     enum ChainCodeIntent {
         INVOKE, QUERY
@@ -64,7 +68,7 @@ public class StateService implements BaseService {
 
         JSONObject result = new JSONObject();
         try {
-            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper,
+            FbNetworkManager manager = FabricHelper.getInstance().get(leagueMapper, orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper,
                     ca, state.getId());
             switch (intent) {
                 case INVOKE:

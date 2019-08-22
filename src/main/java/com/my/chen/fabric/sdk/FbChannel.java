@@ -96,13 +96,10 @@ public class FbChannel {
                 if (!peerCert.exists()) {
                     throw new RuntimeException(String.format("Missing cert file for: %s. Could not find at location: %s", peer.getPeerName(), peerCert.getAbsolutePath()));
                 }
-
                 peerProperties.setProperty("pemFile", peerCert.getAbsolutePath());
                 peerProperties.setProperty("clientCertFile", peerUserClientCert.getAbsolutePath());
                 peerProperties.setProperty("clientKeyFile", peerUserClientKey.getAbsolutePath());
-
             }
-
 
             // ret.setProperty("trustServerCertificate", "true"); //testing
             peerProperties.setProperty("hostnameOverride", peer.getPeerName());
@@ -160,10 +157,6 @@ public class FbChannel {
             peerProperties.setProperty("pemFile", peerCert.getAbsolutePath());
 //            File peerCert = Paths.get(org.getCryptoConfigPath(), "/peerOrganizations", org.getOrgDomainName(), "peers", peer.getPeerName(), "tls/server.crt")
 //                    .toFile();
-            if (!peerCert.exists()) {
-                throw new RuntimeException(String.format("Missing cert file for: %s. Could not find at location: %s", peer.getPeerName(), peerCert.getAbsolutePath()));
-            }
-            peerProperties.setProperty("pemFile", peerCert.getAbsolutePath());
         }
 
         // environment only NOT FOR PRODUCTION!
@@ -192,7 +185,7 @@ public class FbChannel {
      * 查询当前频道的链信息，包括链长度、当前最新区块hash以及当前最新区块的上一区块hash
      */
     JSONObject getBlockchainInfo() throws InvalidArgumentException, ProposalException {
-        org.json.JSONObject blockchainInfo = new org.json.JSONObject();
+        JSONObject blockchainInfo = new JSONObject();
         blockchainInfo.put("height", channel.queryBlockchainInfo().getHeight());
         blockchainInfo.put("currentBlockHash", Hex.encodeHexString(channel.queryBlockchainInfo().getCurrentBlockHash()));
         blockchainInfo.put("previousBlockHash", Hex.encodeHexString(channel.queryBlockchainInfo().getPreviousBlockHash()));

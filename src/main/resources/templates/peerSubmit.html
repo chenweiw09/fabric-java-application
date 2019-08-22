@@ -88,42 +88,102 @@
                                             class="tpl-form-line-small-title">grpc://ip:port</span></label>
                                     <div class="am-u-sm-9">
                                         <input type="text" class="tpl-form-input" id="location" placeholder="请输入访问地址"
+                                               onblur="check('location')"
                                                th:field="*{location}">
                                         <small>请输入访问地址，如grpc://peer0.org1.example.com:7051。</small>
                                     </div>
                                 </div>
-                                <div class="am-form-group">
-                                    <label for="event-hub-host" class="am-u-sm-3 am-form-label">事件域名 <span
-                                            class="tpl-form-line-small-title">event hub host</span></label>
-                                    <div class="am-u-sm-9">
-                                        <input type="text" class="tpl-form-input" id="event-hub-host"
-                                               placeholder="请输入节点事件域名"
-                                               th:field="*{eventHubName}">
-                                        <small>请填写节点事件域名，如peer0.org1.example.com。</small>
-                                    </div>
-                                </div>
+
                                 <div class="am-form-group">
                                     <label for="event-hub-location" class="am-u-sm-3 am-form-label">事件监听访问地址 <span
                                             class="tpl-form-line-small-title">grpc://ip:port</span></label>
                                     <div class="am-u-sm-9">
                                         <input type="text" class="tpl-form-input" id="event-hub-location"
                                                placeholder="请输入事件监听访问地址"
+                                               onblur="check('event-hub-location')"
                                                th:field="*{eventHubLocation}">
                                         <small>请输入事件监听访问地址，如grpc://peer0.org1.example.com:7053。</small>
                                     </div>
                                 </div>
-                                <div class="am-form-group">
-                                    <label for="event-listener" class="am-u-sm-3 am-form-label">Event事件处理 <span
-                                            class="tpl-form-line-small-title">event listener</span></label>
+
+
+                                <div class="am-form-group" >
+                                    <label for="server-crt-file" class="am-u-sm-3 am-form-label">Peer TLS证书</label>
                                     <div class="am-u-sm-9">
-                                        <select data-am-selected="{searchBox: 1}" style="display: none;"
-                                                id="event-listener"
-                                                th:field="*{eventListener}">
-                                            <option th:value="true">监听</option>
-                                            <option th:value="false">关闭</option>
-                                        </select>
+                                        <div class="am-form-group am-form-file">
+                                            <button type="button" class="am-btn am-btn-danger am-btn-sm"
+                                                    id="server-crt-file">
+                                                <i class="am-icon-cloud-upload"></i>peer TLS证书
+                                            </button>
+                                            <input id="doc-form-source-file" type="file" name="serverCrtFile">
+                                            <div id="file-list-source"></div>
+                                            <script>
+                                                $(function () {
+                                                    $('#doc-form-source-file').on('change', function () {
+                                                        var fileNames = '';
+                                                        $.each(this.files, function () {
+                                                            fileNames += '<span class="am-badge">' + this.name + '</span> ';
+                                                        });
+                                                        $('#file-list-source').html(fileNames);
+                                                    });
+                                                });
+                                            </script>
+                                            <small>上传Peer中TLS证书文件server.crt，如未开启TLS，则不用上传</small>
+                                        </div>
                                     </div>
                                 </div>
+
+
+                                <div class="am-form-group" >
+                                    <label for="client-cert-file" class="am-u-sm-3 am-form-label">peerer User Client Cert</label>
+                                    <div class="am-u-sm-9">
+                                        <div class="am-form-group am-form-file">
+                                            <button type="button" class="am-btn am-btn-danger am-btn-sm" id="client-cert-file">
+                                                <i class="am-icon-cloud-upload"></i>peer user client cert
+                                            </button>
+                                            <input id="doc-client-cert-file" type="file" name="clientCertFile">
+                                            <div id="file-list-source-client-cert"></div>
+                                            <script>
+                                                $(function () {
+                                                    $('#doc-client-cert-file').on('change', function () {
+                                                        var fileNames = '';
+                                                        $.each(this.files, function () {
+                                                            fileNames += '<span class="am-badge">' + this.name + '</span> ';
+                                                        });
+                                                        $('#file-list-source-client-cert').html(fileNames);
+                                                    });
+                                                });
+                                            </script>
+                                            <small>上传Peer User中client.crt，如未开启TLS，则不用上传</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="am-form-group" >
+                                    <label for="client-key-file" class="am-u-sm-3 am-form-label">peer User Client key</label>
+                                    <div class="am-u-sm-9">
+                                        <div class="am-form-group am-form-file">
+                                            <button type="button" class="am-btn am-btn-danger am-btn-sm" id="client-key-file">
+                                                <i class="am-icon-cloud-upload"></i>peer user client key
+                                            </button>
+                                            <input id="doc-client-key-file" type="file" name="clientKeyFile">
+                                            <div id="file-list-source-client-key"></div>
+                                            <script>
+                                                $(function () {
+                                                    $('#doc-client-key-file').on('change', function () {
+                                                        var fileNames = '';
+                                                        $.each(this.files, function () {
+                                                            fileNames += '<span class="am-badge">' + this.name + '</span> ';
+                                                        });
+                                                        $('#file-list-source-client-key').html(fileNames);
+                                                    });
+                                                });
+                                            </script>
+                                            <small>上传Peer User中client.key，如未开启TLS，则不用上传</small>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="am-form-group">
                                     <div class="am-u-sm-9 am-u-sm-push-3">
                                         <button type="submit" class="am-btn am-btn-primary tpl-btn-bg-color-success "
@@ -143,6 +203,32 @@
 <script src="/static/js/dataTables.responsive.min.js"></script>
 <script src="/static/js/app.js"></script>
 
+<script>
+    function check(idStr){
+        var that = $("#"+idStr)
+        var parent = that.parent()
+        if(that.val().trim()==""){
+            var msg;
+            if(idStr=="name"){
+                msg = "名称不能为空"
+            }else if(idStr=="location"){
+                msg="访问地址不能为空"
+            }else if(idStr==="event-hub-location"){
+                msg="节点事件监听访问地址不能为空"
+            }
+
+            that.addClass("is-invalid")
+            if(parent.children("[name='nameError']").length==0){
+                parent.append('<div name="nameError" class="invalid-feedback">'+msg+'</div>')
+            }
+            return false;
+        }else{
+            that.removeClass("is-invalid")
+            parent.children("[name='nameError']").remove();
+            return true
+        }
+    }
+</script>
 </body>
 
 </html>

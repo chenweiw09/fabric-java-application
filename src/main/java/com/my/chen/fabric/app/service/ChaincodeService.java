@@ -4,8 +4,7 @@ package com.my.chen.fabric.app.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.my.chen.fabric.app.dao.*;
-import com.my.chen.fabric.app.domain.CA;
-import com.my.chen.fabric.app.domain.Chaincode;
+import com.my.chen.fabric.app.domain.*;
 import com.my.chen.fabric.app.util.DateUtil;
 import com.my.chen.fabric.app.util.FabricHelper;
 import com.my.chen.fabric.app.util.FileUtil;
@@ -40,6 +39,9 @@ public class ChaincodeService implements BaseService {
 
     @Resource
     private CAMapper caMapper;
+
+    @Resource
+    private LeagueMapper leagueMapper;
 
     enum ChainCodeIntent {
         INSTALL, INSTANTIATE, UPGRADE
@@ -221,8 +223,8 @@ public class ChaincodeService implements BaseService {
     private JSONObject chainCode(int chaincodeId, CA ca, ChainCodeIntent intent, String[] args) {
         JSONObject resultMap = new JSONObject();
         try {
-            FbNetworkManager manager = FabricHelper.getInstance().get(orgMapper, channelMapper, chaincodeMapper, ordererMapper, peerMapper, ca,
-                    chaincodeId);
+            FbNetworkManager manager = FabricHelper.getInstance().get(leagueMapper, orgMapper, channelMapper, chaincodeMapper, ordererMapper,
+                    peerMapper, ca, chaincodeId);
             switch (intent) {
                 case INSTALL:
                     resultMap = manager.install();
@@ -246,9 +248,6 @@ public class ChaincodeService implements BaseService {
         if (chaincode.getProposalWaitTime() == 0) {
             chaincode.setProposalWaitTime(90000);
         }
-        if (chaincode.getInvokeWaitTime() == 0) {
-            chaincode.setInvokeWaitTime(120);
-        }
         return StringUtils.isEmpty(chaincode.getName()) ||
                 StringUtils.isEmpty(chaincode.getPath()) ||
                 StringUtils.isEmpty(chaincode.getVersion());
@@ -257,5 +256,23 @@ public class ChaincodeService implements BaseService {
     private Chaincode check(Chaincode chaincode) {
         Chaincode code = chaincodeMapper.findByNameAndVersionAndChannelId(chaincode.getName(), chaincode.getVersion(), chaincode.getChannelId());
         return code;
+    }
+
+    public Chaincode resetChaincode(Chaincode chaincode) {
+        Channel channel = channelMapper.findById(chaincode.getChannelId()).get();
+        Peer peer = peerMapper.findById(channel.getPeerId()).get();
+        Org org = orgMapper.findById(peer.getOrgId()).get();
+        League league = leagueMapper.findById(org.getLeagueId()).get();
+        chaincode.setLeagueName(league.getName());
+        chaincode.setOrgName(org.getMspId());
+        chaincode.setPeerName(peer.getName());
+        chaincode.setChannelName(channel.getName());
+        return chaincode;
+    }
+
+    public List<CA> getCAs(int chaincodeId) {
+        Chaincode chaincode = chaincodeMapper.findById(chaincodeId).get();
+        Channel channel = channelMapper.findById(chaincode.getChannelId()).get();
+        return caMapper.findByPeerId(channel.getPeerId());
     }
 }

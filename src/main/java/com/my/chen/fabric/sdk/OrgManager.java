@@ -13,7 +13,7 @@ import java.util.Map;
  * @author chenwei
  * @version 1.0
  * @date 2019/8/1
- * @description
+ * @description 先对组织init，然后设置组织的管理员账户，最后初始化组织的网络环境
  */
 public class OrgManager {
 
@@ -25,7 +25,7 @@ public class OrgManager {
         this.orgMap = new HashMap<>();
     }
 
-    public OrgManager init(int orgId, boolean openTLS){
+    public OrgManager init(int orgId, String leagueName, String orgName, String orgMSPID, boolean openTLS){
         this.orgId = orgId;
 
         if (orgMap.get(orgId) != null) {
@@ -33,36 +33,40 @@ public class OrgManager {
         } else {
             orgMap.put(orgId, new FbOrg());
         }
+
         orgMap.get(orgId).openTLS(openTLS);
-        return this;
-    }
-
-    public OrgManager setUser(@Nonnull String username, @Nonnull String cryptoConfigPath) {
-        orgMap.get(orgId).setUsername(username);
-        orgMap.get(orgId).setCryptoConfigPath(cryptoConfigPath);
-        return this;
-    }
-
-    public OrgManager setOrderers(String ordererDomainName) {
-        orgMap.get(orgId).setOrdererDomainName(ordererDomainName);
-        return this;
-    }
-
-    public OrgManager addOrderer(String name, String location) {
-        orgMap.get(orgId).addOrderer(name, location);
-        return this;
-    }
-
-    public OrgManager setPeers(String orgName, String orgMSPID, String orgDomainName) {
-        orgMap.get(orgId).setOrgName(orgName);
         orgMap.get(orgId).setOrgMSPID(orgMSPID);
-        orgMap.get(orgId).setOrgDomainName(orgDomainName);
+        orgMap.get(orgId).setLeagueName(leagueName);
+        orgMap.get(orgId).setOrgName(orgName);
+
+        File storeFile = new File(String.format("%s/HFCStore%s.properties", System.getProperty("java.io.tmpdir"), orgId));
+        FbStore fabricStore = new FbStore(storeFile);
+        orgMap.get(orgId).setFabricStore(fabricStore);
+
         return this;
     }
 
-    public OrgManager addPeer(String peerName, String peerEventHubName, String peerLocation, String peerEventHubLocation, boolean isEventListener) {
-        orgMap.get(orgId).addPeer(peerName, peerEventHubName, peerLocation, peerEventHubLocation, isEventListener);
+    public OrgManager setUser(@Nonnull String username, @Nonnull String skPath, @Nonnull String certificatePath) {
+        orgMap.get(orgId).setUsername(username);
+        orgMap.get(orgId).addUser(username, skPath, certificatePath);
         return this;
+    }
+
+    public FbNetworkManager use(int orgId) throws Exception {
+        FbOrg org = orgMap.get(orgId);
+        org.setClient(new FbClient(org.getUser()));
+        org.getChannel().init(org);
+        return new FbNetworkManager(org);
+    }
+
+    public void addOrderer(String name, String location, String serverCrtPath, String clientCertPath, String clientKeyPath) {
+        orgMap.get(orgId).addOrderer(name, String.format("%s%s", "grpc://", location), serverCrtPath, clientCertPath, clientKeyPath);
+    }
+
+
+    public void addPeer(String peerName, String peerLocation,  String peerEventHubLocation, String serverCrtPath, String clientCertPath, String clientKeyPath) {
+        orgMap.get(orgId).addPeer(peerName,String.format("%s%s", "grpc://", peerLocation), String.format("%s%s", "grpc://", peerEventHubLocation),
+                serverCrtPath, clientCertPath, clientKeyPath);
     }
 
 
@@ -110,27 +114,18 @@ public class OrgManager {
 
         // 根据TLS开启状态循环确认Peer节点各服务的请求grpc协议
         for (int i = 0; i < orgMap.get(orgId).getPeers().size(); i++) {
-            orgMap.get(orgId).getPeers().get(i).setPeerLocation(grpcTLSify(orgMap.get(orgId).openTLS(), orgMap.get(orgId).getPeers().get(i).getPeerLocation()));
-            orgMap.get(orgId).getPeers().get(i).setPeerEventHubLocation(grpcTLSify(orgMap.get(orgId).openTLS(), orgMap.get(orgId).getPeers().get(i).getPeerEventHubLocation()));
+            orgMap.get(orgId).getPeers().get(i).
+                    setPeerLocation(grpcTLSify(orgMap.get(orgId).isOpenTLS(), orgMap.get(orgId).getPeers().get(i).getPeerLocation()));
+
+            orgMap.get(orgId).getPeers().get(i)
+                    .setPeerEventHubLocation(grpcTLSify(orgMap.get(orgId).isOpenTLS(), orgMap.get(orgId).getPeers().get(i).getPeerEventHubLocation()));
         }
+
         // 根据TLS开启状态循环确认Orderer节点各服务的请求grpc协议
         for (int i = 0; i < orgMap.get(orgId).getOrderers().size(); i++) {
-            orgMap.get(orgId).getOrderers().get(i).setOrdererLocation(grpcTLSify(orgMap.get(orgId).openTLS(), orgMap.get(orgId).getOrderers().get(i).getOrdererLocation()));
+            orgMap.get(orgId).getOrderers().get(i)
+                    .setOrdererLocation(grpcTLSify(orgMap.get(orgId).isOpenTLS(), orgMap.get(orgId).getOrderers().get(i).getOrdererLocation()));
         }
-    }
-
-    public FbNetworkManager use(int orgId) throws Exception {
-        FbOrg org = orgMap.get(orgId);
-
-        // java.io.tmpdir : C:\Users\aberic\AppData\Local\Temp\
-
-        File storeFile = new File(String.format("%s/HFCStore%s.properties", System.getProperty("java.io.tmpdir"), orgId));
-
-        FbStore fabricStore = new FbStore(storeFile);
-        org.init(fabricStore);
-        org.setClient(new FbClient(org.getUser()));
-        org.getChannel().init(org);
-        return new FbNetworkManager(org);
     }
 
     private String grpcTLSify(boolean openTLS, String location) {

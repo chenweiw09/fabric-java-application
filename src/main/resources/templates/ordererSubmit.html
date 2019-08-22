@@ -57,8 +57,8 @@
                         <div class="widget-body am-fr">
 
                             <form class="am-form tpl-form-line-form" th:action="@{submit}" th:method="post"
-                                  enctype="multipart/form-data"
-                                  th:object="${orderer}">
+                                  enctype="multipart/form-data" th:object="${orderer}">
+
                                 <div class="am-form-group">
                                     <label for="org-name" class="am-u-sm-3 am-form-label">组织 <span
                                             class="tpl-form-line-small-title">org</span></label>
@@ -67,16 +67,17 @@
                                                 id="org-name"
                                                 th:field="*{orgId}">
                                             <option th:each="org: ${orgs}" th:value="${org.id}"
-                                                    th:text="${org.leagueName}+'-'+${org.name}"></option>
+                                                    th:text="${org.leagueName}+'-'+${org.mspId}"></option>
                                         </select>
                                     </div>
                                 </div>
+
                                 <div class="am-form-group">
-                                    <label for="host" class="am-u-sm-3 am-form-label">域名 <span
+                                    <label for="name" class="am-u-sm-3 am-form-label">域名 <span
                                             class="tpl-form-line-small-title">Host</span></label>
                                     <div class="am-u-sm-9">
-                                        <input type="text" class="tpl-form-input" id="host" placeholder="请输入排序服务域名"
-                                               th:field="*{name}">
+                                        <input type="text" class="tpl-form-input" placeholder="请输入排序服务域名"
+                                               th:field="*{name}" id="name" onblur="check('name')">
                                         <input type="hidden" name="intent" th:value="${intent}"/>
                                         <input type="hidden" name="id" th:value="${orderer.id}"/>
                                         <small>请输入排序服务域名，如orderer.example.com。</small>
@@ -87,10 +88,104 @@
                                             class="tpl-form-line-small-title">grpc://ip:port</span></label>
                                     <div class="am-u-sm-9">
                                         <input type="text" class="tpl-form-input" id="location" placeholder="请输入访问地址"
-                                               th:field="*{location}">
+                                               th:field="*{location}"
+                                               onblur="check('location')">
                                         <small>请输入访问地址，如grpc://orderer.example.com:7050。</small>
                                     </div>
                                 </div>
+
+
+                                <div class="am-form-group" >
+                                    <label for="server-crt-file" class="am-u-sm-3 am-form-label">orderer TLS证书</label>
+                                    <div class="am-u-sm-9">
+                                        <div class="am-form-group am-form-file">
+                                            <button type="button" class="am-btn am-btn-danger am-btn-sm"
+                                                    id="server-crt-file">
+                                                <i class="am-icon-cloud-upload"></i>orderer TLS证书
+                                            </button>
+                                            <input id="doc-form-source-file" type="file" name="serverCrtFile">
+                                            <div id="file-list-source"></div>
+                                            <script>
+                                                $(function () {
+                                                    $('#doc-form-source-file').on('change', function () {
+                                                        var fileNames = '';
+                                                        $.each(this.files, function () {
+                                                            fileNames += '<span class="am-badge">' + this.name + '</span> ';
+                                                        });
+                                                        $('#file-list-source').html(fileNames);
+                                                    });
+                                                });
+                                            </script>
+                                            <small>上传Orderer中的TLS证书文件server.crt，如未开启TLS，则不用上传</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="am-form-group" >
+                                    <label for="client-cert-file" class="am-u-sm-3 am-form-label">Orderer User Client Cert</label>
+                                    <div class="am-u-sm-9">
+                                        <div class="am-form-group am-form-file">
+                                            <button type="button" class="am-btn am-btn-danger am-btn-sm" id="client-cert-file">
+                                                <i class="am-icon-cloud-upload"></i>orderer user client cert
+                                            </button>
+                                            <input id="doc-client-cert-file" type="file" name="clientCertFile">
+                                            <div id="file-list-source-client-cert"></div>
+                                            <script>
+                                                $(function () {
+                                                    $('#doc-client-cert-file').on('change', function () {
+                                                        var fileNames = '';
+                                                        $.each(this.files, function () {
+                                                            fileNames += '<span class="am-badge">' + this.name + '</span> ';
+                                                        });
+                                                        $('#file-list-source-client-cert').html(fileNames);
+                                                    });
+                                                });
+                                            </script>
+                                            <small>上传Orderer User中client.crt，如未开启TLS，则不用上传</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="am-form-group" >
+                                    <label for="client-key-file" class="am-u-sm-3 am-form-label">Orderer User Client key</label>
+                                    <div class="am-u-sm-9">
+                                        <div class="am-form-group am-form-file">
+                                            <button type="button" class="am-btn am-btn-danger am-btn-sm" id="client-key-file">
+                                                <i class="am-icon-cloud-upload"></i>orderer user client key
+                                            </button>
+                                            <input id="doc-client-key-file" type="file" name="clientKeyFile">
+                                            <div id="file-list-source-client-key"></div>
+                                            <script>
+                                                $(function () {
+                                                    $('#doc-client-key-file').on('change', function () {
+                                                        var fileNames = '';
+                                                        $.each(this.files, function () {
+                                                            fileNames += '<span class="am-badge">' + this.name + '</span> ';
+                                                        });
+                                                        $('#file-list-source-client-key').html(fileNames);
+                                                    });
+                                                });
+                                            </script>
+                                            <small>上传Orderer User中client.key，如未开启TLS，则不用上传</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!--<div class="form-group" >-->
+                                    <!--<div class="form-label">Orderer User Client Key</div>-->
+                                    <!--<div class="custom-file">-->
+                                        <!--<input id="client-key-file" type="file" class="custom-file-input"-->
+                                               <!--name="clientKeyFile" onchange="getClientKeyFileName()">-->
+                                        <!--<label id="client-key-file-label" class="custom-file-label">上传Orderer User中client.key，如未开启TLS，则不用上传</label>-->
+                                        <!--<script>-->
+                                            <!--function getClientKeyFileName() {-->
+                                                <!--document.getElementById("client-key-file-label").innerText = $("#client-key-file").val();-->
+                                            <!--}-->
+                                        <!--</script>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+
                                 <div class="am-form-group">
                                     <div class="am-u-sm-9 am-u-sm-push-3">
                                         <button type="submit" class="am-btn am-btn-primary tpl-btn-bg-color-success "
@@ -110,6 +205,34 @@
 <script src="/static/js/amazeui.datatables.min.js"></script>
 <script src="/static/js/dataTables.responsive.min.js"></script>
 <script src="/static/js/app.js"></script>
+
+<script>
+
+    function check(idStr){
+        var that = $("#"+idStr)
+        var parent = that.parent()
+        if(that.val().trim()==""){
+            var msg;
+            if(idStr=="name"){
+                msg = "服务名称不能为空"
+            }else if(idStr=="location"){
+                msg="访问地址不能为空"
+            }
+
+            that.addClass("is-invalid")
+            if(parent.children("[name='nameError']").length==0){
+                parent.append('<div name="nameError" class="invalid-feedback"><span th:style="background:#5f8dd4">' +msg+'</span></div>')
+            }
+            return false;
+        }else{
+            that.removeClass("is-invalid")
+            parent.children("[name='nameError']").remove();
+            return true
+        }
+    }
+
+</script>
+
 
 </body>
 

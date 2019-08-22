@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class PeerService {
 
         if (StringUtils.isNotEmpty(serverCrtFile.getOriginalFilename()) && StringUtils.isNotEmpty(clientCertFile.getOriginalFilename())
                 && StringUtils.isNotEmpty(clientKeyFile.getOriginalFilename())) {
-
+            resetPeer(peer);
             boolean flag = savePeerCertFile(peer, serverCrtFile, clientCertFile, clientKeyFile);
             if (!flag) {
                 return 0;
@@ -64,6 +65,7 @@ public class PeerService {
         FabricHelper.getInstance().removeManager(channelMapper.findByPeerId(peer.getId()), chaincodeMapper);
 
         Peer entity = peerMapper.findById(peer.getId()).get();
+        resetPeer(peer);
         savePeerCertFile(peer, serverCrtFile, clientCertFile, clientKeyFile);
 
         if(StringUtils.isBlank(peer.getServerCrtPath())){
@@ -120,7 +122,7 @@ public class PeerService {
         String ordererTlsPath = manageService.getPeerPath(peer.getLeagueName(), peer.getOrgName(), peer.getName());
 
         if (serverCrtFile != null && org.apache.commons.lang3.StringUtils.isNotEmpty(serverCrtFile.getOriginalFilename())) {
-            String serverCrtPath = String.format("%s%s", ordererTlsPath, serverCrtFile.getOriginalFilename());
+            String serverCrtPath = String.format("%s%s%s", ordererTlsPath, File.separator, serverCrtFile.getOriginalFilename());
             peer.setServerCrtPath(serverCrtPath);
             try {
                 FileUtil.saveFile(serverCrtFile, serverCrtPath);
@@ -131,7 +133,7 @@ public class PeerService {
         }
 
         if (clientCertFile != null && org.apache.commons.lang3.StringUtils.isNotEmpty(clientCertFile.getOriginalFilename())) {
-            String clientCertPath = String.format("%s%s", ordererTlsPath, clientCertFile.getOriginalFilename());
+            String clientCertPath = String.format("%s%s%s", ordererTlsPath,File.separator, clientCertFile.getOriginalFilename());
             peer.setClientCertPath(clientCertPath);
             try {
                 FileUtil.saveFile(clientCertFile, clientCertPath);
@@ -143,7 +145,7 @@ public class PeerService {
 
 
         if (clientKeyFile != null && org.apache.commons.lang3.StringUtils.isNotEmpty(clientKeyFile.getOriginalFilename())) {
-            String clientKeyPath = String.format("%s%s", ordererTlsPath, clientKeyFile.getOriginalFilename());
+            String clientKeyPath = String.format("%s%s%s", ordererTlsPath,File.separator, clientKeyFile.getOriginalFilename());
             peer.setClientKeyPath(clientKeyPath);
             try {
                 FileUtil.saveFile(clientKeyFile, clientKeyPath);
@@ -154,5 +156,12 @@ public class PeerService {
         }
 
         return true;
+    }
+
+    public void resetPeer(Peer peer) {
+        Org org = orgMapper.findById(peer.getOrgId()).get();
+        League league = leagueMapper.findById(org.getLeagueId()).get();
+        peer.setLeagueName(league.getName());
+        peer.setOrgName(org.getMspId());
     }
 }

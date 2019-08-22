@@ -64,6 +64,7 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>组织名称</th>
+                                        <th>组织ID</th>
                                         <th>联盟名称</th>
                                         <th>排序数量</th>
                                         <th>节点数量</th>
@@ -76,6 +77,7 @@
                                     <tr class="gradeX" th:each="org : ${orgs}">
                                         <td th:text="${org.id}">ID</td>
                                         <td th:text="${org.name}">组织名称</td>
+                                        <td th:text="${org.mspId}">组织ID</td>
                                         <td th:text="${org.leagueName}">联盟名称</td>
                                         <td th:text="${org.ordererCount}">排序数量</td>
                                         <td th:text="${org.peerCount}">节点数量</td>
@@ -86,6 +88,11 @@
                                                 <a th:href="@{/org/edit(id=${org.id})}">
                                                     <i class="am-icon-pencil"></i> 编辑
                                                 </a>
+
+                                                <a th:href="@{/org/delete(id=${org.id})}" onclick="return del()">
+                                                    <i class="am-icon-pencil"></i> 删除
+                                                </a>
+
                                             </div>
                                         </td>
                                     </tr>
@@ -106,5 +113,14 @@
 <script src="/static/js/app.js"></script>
 
 </body>
+
+<script>
+
+    function del() {
+        var c = confirm("确认删除？")
+        return c
+    }
+
+</script>
 
 </html>

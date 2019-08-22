@@ -63,8 +63,9 @@
                                     <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>排序服务名称</th>
+                                        <th>服务名称</th>
                                         <th>组织名称</th>
+                                        <th>访问地址</th>
                                         <th>创建时间</th>
                                         <th>更新时间</th>
                                         <th>操作</th>
@@ -73,8 +74,9 @@
                                     <tbody>
                                     <tr class="gradeX" th:each="orderer : ${orderers}">
                                         <td th:text="${orderer.id}">ID</td>
-                                        <td th:text="${orderer.name}">排序服务名称</td>
+                                        <td th:text="${orderer.name}">服务名称</td>
                                         <td th:text="${orderer.orgName}">组织名称</td>
+                                        <td th:text="${orderer.location}">访问地址</td>
                                         <td th:text="${#dates.format(orderer.createTime, 'yyyy-MM-dd HH:mm:ss')}">创建时间</td>
                                         <td th:text="${#dates.format(orderer.updateTime, 'yyyy-MM-dd HH:mm:ss')}">更新时间</td>
                                         <td>

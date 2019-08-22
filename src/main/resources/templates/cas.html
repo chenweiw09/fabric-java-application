@@ -1,18 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html xmlns:th="http://www.thymeleaf.org">
+
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>节点列表</title>
-    <meta name="description" content="节点列表">
-    <meta name="keywords" content="节点列表">
+    <title>ca列表</title>
+    <meta name="description" content="ca列表">
+    <meta name="keywords" content="ca列表">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="renderer" content="webkit">
     <meta http-equiv="Cache-Control" content="no-siteapp"/>
     <link rel="icon" type="image/png" href="/static/i/favicon.png">
     <link rel="apple-touch-icon-precomposed" href="/static/i/app-icon72x72@2x.png">
-    <meta name="apple-mobile-web-app-title" content="节点列表"/>
+    <meta name="apple-mobile-web-app-title" content="ca列表"/>
     <script src="/static/js/echarts.min.js"></script>
     <link rel="stylesheet" href="/static/css/amazeui.min.css"/>
     <link rel="stylesheet" href="/static/css/amazeui.datatables.min.css"/>
@@ -39,7 +41,7 @@
                 <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
                     <div class="widget am-cf">
                         <div class="widget-head am-cf">
-                            <div class="widget-title  am-cf">节点列表</div>
+                            <div class="widget-title  am-cf">ca列表</div>
                         </div>
                         <div class="widget-body  am-fr">
 
@@ -47,7 +49,7 @@
                                 <div class="am-form-group">
                                     <div class="am-btn-toolbar">
                                         <div class="am-btn-group am-btn-group-xs">
-                                            <a href="/peer/add">
+                                            <a href="/ca/add">
                                                 <button type="button" class="am-btn am-btn-default am-btn-success">
                                                     <span class="am-icon-plus"></span> 新增
                                                 </button>
@@ -63,31 +65,31 @@
                                     <thead>
                                     <tr>
                                         <th>ID</th>
+                                        <th>CA名称</th>
+                                        <th>联盟名称</th>
                                         <th>组织名称</th>
                                         <th>节点名称</th>
-                                        <th>节点地址</th>
-                                        <th>监听地址</th>
-                                        <th>通道数量</th>
                                         <th>创建时间</th>
                                         <th>更新时间</th>
                                         <th>操作</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr class="gradeX" th:each="peer : ${peers}">
-                                        <td th:text="${peer.id}">ID</td>
-                                        <td th:text="${peer.orgName}">组织名称</td>
-                                        <td th:text="${peer.name}">节点列表</td>
-                                        <td th:text="${peer.location}">节点地址</td>
-                                        <td th:text="${peer.eventHubLocation}">监听地址</td>
-                                        <td th:text="${peer.channelCount}">通道数量</td>
-                                        <td th:text="${#dates.format(peer.createTime, 'yyyy-MM-dd HH:mm:ss')}">创建时间</td>
-                                        <td th:text="${#dates.format(peer.updateTime, 'yyyy-MM-dd HH:mm:ss')}">更新时间</td>
+                                    <tr class="gradeX" th:each="ca : ${cas}">
+                                        <td th:text="${ca.id}">ID</td>
+                                        <td th:text="${ca.name}">CA名称</td>
+                                        <td th:text="${ca.leagueName}">联盟名称</td>
+                                        <td th:text="${ca.orgName}">组织名称</td>
+                                        <td th:text="${ca.peerName}">节点名称</td>
+                                        <td th:text="${#dates.format(ca.createTime, 'yyyy-MM-dd HH:mm:ss')}">创建时间</td>
+                                        <td th:text="${#dates.format(ca.updateTime, 'yyyy-MM-dd HH:mm:ss')}">更新时间</td>
                                         <td>
                                             <div class="tpl-table-black-operation">
-                                                <a th:href="@{/peer/edit(id=${peer.id})}">
+                                                <a th:href="@{/ca/edit(id=${ca.id})}">
                                                     <i class="am-icon-pencil"></i> 编辑
                                                 </a>
+                                                <a th:href="@{/ca/delete(id=${ca.id})}"
+                                                   onclick="return doDelete()"><i class="am-icon-pencil"></i>删除</a>
                                             </div>
                                         </td>
                                     </tr>
@@ -106,7 +108,13 @@
 <script src="/static/js/amazeui.datatables.min.js"></script>
 <script src="/static/js/dataTables.responsive.min.js"></script>
 <script src="/static/js/app.js"></script>
-
+<script src="https://unpkg.com/ionicons@4.2.4/dist/ionicons.js"></script>
+<script>
+    function doDelete(){
+        var c = confirm("是否删除？")
+        return c
+    }
+</script>
 </body>
 
 </html>
