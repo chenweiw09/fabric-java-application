@@ -65,7 +65,7 @@
                                             class="tpl-form-line-small-title">ca</span></label>
                                     <div class="am-u-sm-9">
                                         <select id="ca" class="form-control custom-select" th:field="*{flag}">
-                                            <option th:each="ca: ${cas}" th:value="${ca.flag}"
+                                            <option style="color: black;" th:each="ca:${cas}" th:value="${ca.flag}"
                                                     th:text="${ca.leagueName}+'-'+${ca.orgName}+'-'+${ca.peerName}+'-'+${ca.name}"></option>
                                         </select>
                                     </div>

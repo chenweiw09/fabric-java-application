@@ -104,9 +104,9 @@
                                         </td>
                                         <td>
                                             <div class="tpl-table-black-operation">
-                                                <a th:href="@{/chaincode/edit(id=${chaincode.id})}">
-                                                    <i class="am-icon-pencil"></i> 编辑
-                                                </a>
+                                                <!--<a th:href="@{/chaincode/edit(id=${chaincode.id})}">-->
+                                                    <!--<i class="am-icon-pencil"></i> 编辑-->
+                                                <!--</a>-->
                                                 <a th:if="${chaincode.instantiated} eq 0" th:href="@{/chaincode/instantiate(chaincodeId=${chaincode.id})}">
                                                     <i class="am-icon-pencil"></i> 实例化
                                                 </a>
