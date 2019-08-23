@@ -49,7 +49,7 @@
 
         <div class="row-content am-cf">
             <div class="row  am-cf">
-                <div class="am-u-sm-12 am-u-md-6 am-u-lg-4">
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-3">
                     <div class="widget widget-primary am-cf">
                         <div class="widget-statistic-header">
                             联盟链总数
@@ -63,7 +63,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="am-u-sm-12 am-u-md-6 am-u-lg-4">
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-3">
                     <div class="widget widget-primary am-cf">
                         <div class="widget-statistic-header">
                             组织总数
@@ -77,7 +77,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="am-u-sm-12 am-u-md-6 am-u-lg-4">
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-3">
                     <div class="widget widget-primary am-cf">
                         <div class="widget-statistic-header">
                             排序服务总数
@@ -91,10 +91,24 @@
                         </div>
                     </div>
                 </div>
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-3">
+                    <div class="widget widget-primary am-cf">
+                        <div class="widget-statistic-header">
+                            CA证书总数
+                        </div>
+                        <div class="widget-statistic-body">
+                            <div class="widget-statistic-value" th:text="${caCount}"></div>
+                            <div class="widget-statistic-description">
+                                即当前服务加入或创建的 <strong>CA证书</strong> 数量
+                            </div>
+                            <span class="widget-statistic-icon am-icon-gg"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="row  am-cf">
-                <div class="am-u-sm-12 am-u-md-6 am-u-lg-4">
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-3">
                     <div class="widget widget-purple am-cf">
                         <div class="widget-statistic-header">
                             节点服务总数
@@ -108,7 +122,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="am-u-sm-12 am-u-md-6 am-u-lg-4">
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-3">
                     <div class="widget widget-purple am-cf">
                         <div class="widget-statistic-header">
                             通道总数
@@ -122,7 +136,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="am-u-sm-12 am-u-md-6 am-u-lg-4">
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-3">
                     <div class="widget widget-purple am-cf">
                         <div class="widget-statistic-header">
                             智能合约总数
@@ -134,6 +148,10 @@
                             </div>
                             <span class="widget-statistic-icon am-icon-database"></span>
                         </div>
+                    </div>
+                </div>
+                <div class="am-u-lg-3">
+                    <div class="widget am-cf">
                     </div>
                 </div>
             </div>

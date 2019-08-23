@@ -42,6 +42,9 @@ public class CommonController {
     @Resource
     private TraceService traceService;
 
+    @Resource
+    private CAService caService;
+
     private static final String SUCCESS_CODE = "200";
 
     @GetMapping(value = "index")
@@ -114,6 +117,7 @@ public class CommonController {
         modelAndView.addObject("peerCount", peerCount);
         modelAndView.addObject("channelCount", channelCount);
         modelAndView.addObject("chaincodeCount", chaincodeCount);
+        modelAndView.addObject("caCount", caService.count());
     }
 
 
