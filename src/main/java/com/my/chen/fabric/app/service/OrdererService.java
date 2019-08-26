@@ -48,21 +48,19 @@ public class OrdererService {
             return 0;
         }
 
+        resetOrderer(orderer);
+
         if (StringUtils.isNotEmpty(serverCrtFile.getOriginalFilename()) && StringUtils.isNotEmpty(clientCertFile.getOriginalFilename())
                 && StringUtils.isNotEmpty(clientKeyFile.getOriginalFilename())) {
-
-            resetOrderer(orderer);
             boolean flag = saveOrderCertFile(orderer, serverCrtFile, clientCertFile, clientKeyFile);
             if (!flag) {
                 return 0;
             }
-            orderer.setCreateTime(DateUtil.getCurrent());
-            orderer.setUpdateTime(DateUtil.getCurrent());
-            ordererMapper.save(orderer);
-            return 1;
         }
-
-        return 0;
+        orderer.setCreateTime(DateUtil.getCurrent());
+        orderer.setUpdateTime(DateUtil.getCurrent());
+        ordererMapper.save(orderer);
+        return 1;
     }
 
 

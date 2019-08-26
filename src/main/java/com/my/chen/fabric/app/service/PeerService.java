@@ -44,38 +44,40 @@ public class PeerService {
             return 0;
         }
 
+        resetPeer(peer);
+
         if (StringUtils.isNotEmpty(serverCrtFile.getOriginalFilename()) && StringUtils.isNotEmpty(clientCertFile.getOriginalFilename())
                 && StringUtils.isNotEmpty(clientKeyFile.getOriginalFilename())) {
-            resetPeer(peer);
+
             boolean flag = savePeerCertFile(peer, serverCrtFile, clientCertFile, clientKeyFile);
             if (!flag) {
                 return 0;
             }
-            peer.setCreateTime(DateUtil.getCurrent());
-            peer.setUpdateTime(DateUtil.getCurrent());
-            peerMapper.save(peer);
-            return 1;
+
         }
-        return 0;
+        peer.setCreateTime(DateUtil.getCurrent());
+        peer.setUpdateTime(DateUtil.getCurrent());
+        peerMapper.save(peer);
+        return 1;
     }
 
 
     // 因为peer 下挂载的是智能合约地址，所以如果peer的域名有变化，需要调整对应的智能合约地址地址
-    public int update(Peer peer,MultipartFile serverCrtFile, MultipartFile clientCertFile, MultipartFile clientKeyFile) {
+    public int update(Peer peer, MultipartFile serverCrtFile, MultipartFile clientCertFile, MultipartFile clientKeyFile) {
         FabricHelper.getInstance().removeManager(channelMapper.findByPeerId(peer.getId()), chaincodeMapper);
 
         Peer entity = peerMapper.findById(peer.getId()).get();
         resetPeer(peer);
         savePeerCertFile(peer, serverCrtFile, clientCertFile, clientKeyFile);
 
-        if(StringUtils.isBlank(peer.getServerCrtPath())){
+        if (StringUtils.isBlank(peer.getServerCrtPath())) {
             peer.setServerCrtPath(entity.getServerCrtPath());
         }
 
-        if(StringUtils.isBlank(peer.getClientCertPath())){
+        if (StringUtils.isBlank(peer.getClientCertPath())) {
             peer.setClientCertPath(entity.getClientCertPath());
         }
-        if(StringUtils.isBlank(peer.getClientKeyPath())){
+        if (StringUtils.isBlank(peer.getClientKeyPath())) {
             peer.setClientKeyPath(entity.getClientKeyPath());
         }
 
@@ -88,7 +90,7 @@ public class PeerService {
 
     public List<Peer> listAll() {
         List<Peer> list = Lists.newArrayList(peerMapper.findAll());
-        for(Peer peer :list){
+        for (Peer peer : list) {
             Org org = orgMapper.findById(peer.getOrgId()).get();
             League league = leagueMapper.findById(org.getLeagueId()).get();
             peer.setLeagueName(league.getName());
@@ -133,7 +135,7 @@ public class PeerService {
         }
 
         if (clientCertFile != null && org.apache.commons.lang3.StringUtils.isNotEmpty(clientCertFile.getOriginalFilename())) {
-            String clientCertPath = String.format("%s%s%s", ordererTlsPath,File.separator, clientCertFile.getOriginalFilename());
+            String clientCertPath = String.format("%s%s%s", ordererTlsPath, File.separator, clientCertFile.getOriginalFilename());
             peer.setClientCertPath(clientCertPath);
             try {
                 FileUtil.saveFile(clientCertFile, clientCertPath);
@@ -145,7 +147,7 @@ public class PeerService {
 
 
         if (clientKeyFile != null && org.apache.commons.lang3.StringUtils.isNotEmpty(clientKeyFile.getOriginalFilename())) {
-            String clientKeyPath = String.format("%s%s%s", ordererTlsPath,File.separator, clientKeyFile.getOriginalFilename());
+            String clientKeyPath = String.format("%s%s%s", ordererTlsPath, File.separator, clientKeyFile.getOriginalFilename());
             peer.setClientKeyPath(clientKeyPath);
             try {
                 FileUtil.saveFile(clientKeyFile, clientKeyPath);

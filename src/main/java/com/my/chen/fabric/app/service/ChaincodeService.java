@@ -151,14 +151,18 @@ public class ChaincodeService implements BaseService {
         String chaincodeSource = manageService.getChainCodePath(chaincode.getLeagueName(), chaincode.getOrgName(), chaincode.getPeerName(), chaincode.getChannelName());
 
         String chaincodePath = Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[0];
-        String childrenPath = String.format("%s%ssrc%s%s", chaincodeSource, File.separator, File.separator, Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[0]);
+
+        String childrenPath = String.format("%s%s%s%s", chaincodeSource, File.separator, File.separator,
+                chaincodePath);
+
         chaincode.setSource(chaincodeSource);
         chaincode.setPath(chaincodePath);
+
         chaincode.setPolicy(String.format("%s%spolicy.yaml", childrenPath, File.separator));
         chaincode.setCreateTime(DateUtil.getCurrent());
         chaincode.setUpdateTime(DateUtil.getCurrent());
         try {
-            FileUtil.chaincodeUnzipAndSave(file, String.format("%s%ssrc", chaincodeSource, File.separator), childrenPath);
+            FileUtil.chaincodeUnzipAndSave(file, String.format("%s%s", chaincodeSource, File.separator), childrenPath);
         } catch (IOException e) {
             e.printStackTrace();
             return false;
