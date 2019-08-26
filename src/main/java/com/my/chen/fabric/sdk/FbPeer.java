@@ -16,7 +16,7 @@ public class FbPeer {
     private String peerName;
 
     /** 当前指定的组织节点事件域名 peer0.org1.example.com*/
-    private String peerEventHubName;
+//    private String peerEventHubName;
 
     /** 当前指定的组织节点访问地址 grpc://110.131.116.21:7051*/
     private String peerLocation;
@@ -29,9 +29,9 @@ public class FbPeer {
     private String clientCertPath;
     private String clientKeyPath;
 
-    public FbPeer(String peerName, String peerEventHubName, String peerLocation, String peerEventHubLocation) {
+    public FbPeer(String peerName, String peerLocation, String peerEventHubLocation) {
         this.peerName = peerName;
-        this.peerEventHubName = peerEventHubName;
+//        this.peerEventHubName = peerEventHubName;
         this.peerLocation = peerLocation;
         this.peerEventHubLocation = peerEventHubLocation;
     }

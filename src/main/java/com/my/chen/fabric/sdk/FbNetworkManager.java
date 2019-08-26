@@ -22,21 +22,15 @@ import java.util.stream.Collectors;
  * @author chenwei
  * @version 1.0
  * @date 2019/8/1
- * @description network manager
+ * @description network manager  因为现在是一个web端的chaincodeId，有一个对应的Manager，所以list里面只有一个chaincode
  */
 @Getter
 public class FbNetworkManager {
 
     private FbOrg org;
 
-    private String chaincodeName;
-
     public FbNetworkManager(FbOrg org) {
         this.org = org;
-    }
-
-    public void setChaincodeName(String chaincodeName) {
-        this.chaincodeName = chaincodeName;
     }
 
     private FbChainCode getChainCode(){
@@ -46,17 +40,15 @@ public class FbNetworkManager {
             throw new RuntimeException("org chain code not init");
         }
 
-        if(StringUtils.isEmpty(chaincodeName)){
-            return list.get(0);
-        }
+        return list.get(0);
 
-        for(FbChainCode code :list){
-            if(chaincodeName.equals(code.getChaincodeName())){
-                return code;
-            }
-        }
-
-        throw new RuntimeException("error chain code name");
+//        for(FbChainCode code :list){
+//            if(chaincodeName.equals(code.getChaincodeName())){
+//                return code;
+//            }
+//        }
+//
+//        throw new RuntimeException("error chain code name");
     }
 
     /** 安装智能合约 */
@@ -143,12 +135,8 @@ public class FbNetworkManager {
      */
     public List<FbPeer> getChannelPeers(){
         Collection<Peer> peers = org.getChannel().getChannel().getPeers();
-        return peers.stream().map(t -> new FbPeer(t.getName(), t.getUrl(), null, null)).collect(Collectors.toList());
+        return peers.stream().map(t -> new FbPeer(t.getName(), t.getUrl(),  null)).collect(Collectors.toList());
     }
 
-    public List<FbOrderer> getChannelOrderers(){
-        Collection<Orderer> orderers = org.getChannel().getChannel().getOrderers();
-        return orderers.stream().map(t -> new FbOrderer(t.getName(), t.getUrl())).collect(Collectors.toList());
-    }
 
 }

@@ -4,7 +4,6 @@ import com.my.chen.fabric.app.domain.Channel;
 import com.my.chen.fabric.app.domain.League;
 import com.my.chen.fabric.app.domain.Org;
 import com.my.chen.fabric.app.domain.Peer;
-import com.my.chen.fabric.app.dto.Api;
 import com.my.chen.fabric.app.service.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -84,7 +83,7 @@ public class ChannelController {
 
         Org org = orgService.get(peerService.get(channel.getPeerId()).getOrgId());
         channel.setOrgName(org.getName());
-        List<Peer> peers = peerService.listById(org.getId());
+        List<Peer> peers = peerService.listByOrgId(org.getId());
         League league = leagueService.getById(orgService.get(org.getId()).getLeagueId());
         channel.setLeagueName(league.getName());
         org.setLeagueName(league.getName());

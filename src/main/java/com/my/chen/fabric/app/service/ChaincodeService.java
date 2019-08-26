@@ -146,13 +146,14 @@ public class ChaincodeService implements BaseService {
     }
 
 
+    // 这里chaincodeSource，一定要包含src目录，因为后面InstallProposalBuilder里会从src/path目录里获取对应的链码
     private boolean uploadSource(Chaincode chaincode, MultipartFile file) {
 
         String chaincodeSource = manageService.getChainCodePath(chaincode.getLeagueName(), chaincode.getOrgName(), chaincode.getPeerName(), chaincode.getChannelName());
 
         String chaincodePath = Objects.requireNonNull(file.getOriginalFilename()).split("\\.")[0];
 
-        String childrenPath = String.format("%s%s%s%s", chaincodeSource, File.separator, File.separator,
+        String childrenPath = String.format("%s%ssrc%s%s", chaincodeSource, File.separator, File.separator,
                 chaincodePath);
 
         chaincode.setSource(chaincodeSource);
@@ -162,7 +163,7 @@ public class ChaincodeService implements BaseService {
         chaincode.setCreateTime(DateUtil.getCurrent());
         chaincode.setUpdateTime(DateUtil.getCurrent());
         try {
-            FileUtil.chaincodeUnzipAndSave(file, String.format("%s%s", chaincodeSource, File.separator), childrenPath);
+            FileUtil.chaincodeUnzipAndSave(file, String.format("%s%ssrc", chaincodeSource, File.separator), childrenPath);
         } catch (IOException e) {
             e.printStackTrace();
             return false;

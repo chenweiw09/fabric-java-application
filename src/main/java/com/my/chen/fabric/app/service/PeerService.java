@@ -43,7 +43,6 @@ public class PeerService {
         if (StringUtils.isEmpty(peer.getName()) || StringUtils.isEmpty(peer.getLocation()) || StringUtils.isEmpty(peer.getEventHubLocation())) {
             return 0;
         }
-
         resetPeer(peer);
 
         if (StringUtils.isNotEmpty(serverCrtFile.getOriginalFilename()) && StringUtils.isNotEmpty(clientCertFile.getOriginalFilename())
@@ -53,7 +52,6 @@ public class PeerService {
             if (!flag) {
                 return 0;
             }
-
         }
         peer.setCreateTime(DateUtil.getCurrent());
         peer.setUpdateTime(DateUtil.getCurrent());
@@ -97,27 +95,29 @@ public class PeerService {
             peer.setOrgName(org.getMspId());
             peer.setChannelCount(channelMapper.countByPeerId(peer.getId()));
         }
-
         return list;
     }
 
 
-    public List<Peer> listById(int orgId) {
+    public List<Peer> listByOrgId(int orgId) {
         return peerMapper.findByOrgId(orgId);
     }
-
 
     public Peer get(int id) {
         return peerMapper.findById(id).orElse(null);
     }
 
-
-    public int countById(int orgId) {
+    public int countByOrgId(int orgId) {
         return peerMapper.countByOrOrgId(orgId);
     }
 
     public int count() {
         return (int) peerMapper.count();
+    }
+
+    public int delPeer(int peerId){
+        peerMapper.deleteById(peerId);
+        return 1;
     }
 
     private boolean savePeerCertFile(Peer peer, MultipartFile serverCrtFile, MultipartFile clientCertFile, MultipartFile clientKeyFile) {

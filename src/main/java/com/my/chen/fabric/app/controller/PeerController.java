@@ -7,6 +7,7 @@ import com.my.chen.fabric.app.service.ChannelService;
 import com.my.chen.fabric.app.service.LeagueService;
 import com.my.chen.fabric.app.service.OrgService;
 import com.my.chen.fabric.app.service.PeerService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import javax.annotation.Resource;
 import java.util.List;
 
+@Slf4j
 @CrossOrigin
 @RestController
 @RequestMapping("peer")
@@ -88,6 +90,17 @@ public class PeerController {
         }
         modelAndView.addObject("peers", peers);
         return modelAndView;
+    }
+
+    @GetMapping("delete")
+    public ModelAndView deletePeer(@RequestParam("id") int peerId){
+        int channelCount = channelService.countByPeerId(peerId);
+        if(channelCount > 0){
+            log.error("peer has more than one channel and can not delete");
+            return new ModelAndView(new RedirectView("list"));
+        }
+        peerService.delPeer(peerId);
+        return new ModelAndView(new RedirectView("list"));
     }
 
     private List<Org> getForPeerAndOrderer() {

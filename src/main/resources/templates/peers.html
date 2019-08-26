@@ -88,6 +88,9 @@
                                                 <a th:href="@{/peer/edit(id=${peer.id})}">
                                                     <i class="am-icon-pencil"></i> 编辑
                                                 </a>
+                                                <a th:href="@{/peer/delete(id=${peer.id})}"
+                                                   onclick="return doDelete()"
+                                                   class="btn btn-secondary btn-sm" th:text="删除"></a>
                                             </div>
                                         </td>
                                     </tr>
@@ -106,7 +109,12 @@
 <script src="/static/js/amazeui.datatables.min.js"></script>
 <script src="/static/js/dataTables.responsive.min.js"></script>
 <script src="/static/js/app.js"></script>
-
+<script>
+    function doDelete(){
+        var c = confirm("确认删除？")
+        return c
+    }
+</script>
 </body>
 
 </html>

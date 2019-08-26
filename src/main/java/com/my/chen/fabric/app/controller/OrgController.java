@@ -5,9 +5,8 @@ import com.my.chen.fabric.app.service.LeagueService;
 import com.my.chen.fabric.app.service.OrdererService;
 import com.my.chen.fabric.app.service.OrgService;
 import com.my.chen.fabric.app.service.PeerService;
-import com.my.chen.fabric.app.util.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -17,9 +16,8 @@ import java.util.List;
 
 /**
  * 描述：
- *
- * @author : Aberic 【2018/6/4 15:01】
  */
+@Slf4j
 @CrossOrigin
 @RestController
 @RequestMapping("org")
@@ -81,7 +79,7 @@ public class OrgController {
         List<Org> orgs = new ArrayList<>(orgService.listAll());
         for (Org org : orgs) {
             org.setOrdererCount(ordererService.countByOrgId(org.getId()));
-            org.setPeerCount(peerService.countById(org.getId()));
+            org.setPeerCount(peerService.countByOrgId(org.getId()));
             org.setLeagueName(leagueService.getById(org.getLeagueId()).getName());
         }
         modelAndView.addObject("orgs", orgs);
@@ -90,6 +88,16 @@ public class OrgController {
 
     @GetMapping(value = "delete")
     public ModelAndView delete(@RequestParam("id") int id) {
+        int ordererCount = ordererService.countByOrgId(id);
+        if(ordererCount > 0){
+            log.error("org has more then 1 orderer and can not delete");
+            return new ModelAndView(new RedirectView("list"));
+        }
+        int peerCount = peerService.countByOrgId(id);
+        if(peerCount > 0){
+            log.error("org has more then 1 peer and can not delete");
+            return new ModelAndView(new RedirectView("list"));
+        }
         orgService.delOrgByid(id);
         return new ModelAndView(new RedirectView("list"));
     }

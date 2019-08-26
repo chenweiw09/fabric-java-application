@@ -82,8 +82,7 @@ public class FbStore {
         try (PEMParser pemParser = new PEMParser(pemReader)) {
             pemPair = (PrivateKeyInfo) pemParser.readObject();
         }
-        PrivateKey privateKey = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getPrivateKey(pemPair);
-        return privateKey;
+        return new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getPrivateKey(pemPair);
     }
 
     private Properties loadProperties() {
@@ -112,8 +111,7 @@ public class FbStore {
         try (PEMParser pemParser = new PEMParser(pemReader)) {
             pemPair = (PrivateKeyInfo) pemParser.readObject();
         }
-        PrivateKey privateKey = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getPrivateKey(pemPair);
-        return privateKey;
+        return new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getPrivateKey(pemPair);
     }
 
 
