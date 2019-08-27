@@ -52,7 +52,6 @@ public class CommonController {
         ModelAndView modelAndView = new ModelAndView("index");
         getCount(modelAndView);
 
-
         List<Transaction> tmpTransactions = new ArrayList<>();
         List<Transaction> transactions = new ArrayList<>();
 
@@ -61,7 +60,7 @@ public class CommonController {
             List<Chaincode> chaincodes = chaincodeService.listById(channel.getId());
             for (Chaincode chaincode: chaincodes) {
                 try {
-                    JSONObject blockInfo = traceService.queryBlockChainInfo(chaincode.getId(),chaincode.getFlag());
+                    JSONObject blockInfo = traceService.queryBlockChainInfo(chaincode.getId(),chaincode.getFlag(),"");
                     int height = blockInfo.getJSONObject("data").getInteger("height");
                     for (int num = height - 1; num >= 0; num--) {
                         Trace trace = new Trace();

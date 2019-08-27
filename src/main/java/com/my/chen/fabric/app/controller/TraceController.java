@@ -9,8 +9,6 @@ import javax.annotation.Resource;
 
 /**
  * 描述：
- *
- * @author : Aberic 【2018/6/4 15:01】
  */
 @CrossOrigin
 @RestController
@@ -37,7 +35,7 @@ public class TraceController {
 
     @GetMapping(value = "info/{id}/{key}")
     public JSONObject queryBlockChainInfo(@PathVariable("id") int id, @PathVariable("key")String key) {
-        return traceService.queryBlockChainInfo(id,key);
+        return traceService.queryBlockChainInfo(id,key,"");
     }
 
 }

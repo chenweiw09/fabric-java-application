@@ -14,63 +14,66 @@ import java.util.Map;
  * @version 1.0
  * @date 2019/8/1
  * @description 先对组织init，然后设置组织的管理员账户，最后初始化组织的网络环境
+ *    这里同样不能用orgId作为map的key，因为org里面有用户的信息，还有channel的代理，如果用不同的身份登录，需要看到不同的org，所以map的key需要身份关联
  */
 public class OrgManager {
 
-    private Map<Integer, FbOrg> orgMap;
+    private Map<String, FbOrg> orgMap;
 
-    private int orgId;
+    private String chaincodeAndUserSign;
 
     public OrgManager() {
         this.orgMap = new HashMap<>();
     }
 
-    public OrgManager init(int orgId, String leagueName, String orgName, String orgMSPID, boolean openTLS){
-        this.orgId = orgId;
+    public OrgManager init(String sign, String leagueName, String orgName, String orgMSPID, boolean openTLS){
+        this.chaincodeAndUserSign = sign;
 
-        if (orgMap.get(orgId) != null) {
-            throw new RuntimeException(String.format("OrgManager had the same id of %s", orgId));
+        if (orgMap.get(sign) != null) {
+            throw new RuntimeException(String.format("OrgManager had the same id of %s", sign));
         } else {
-            orgMap.put(orgId, new FbOrg());
+            orgMap.put(sign, new FbOrg());
         }
 
-        orgMap.get(orgId).openTLS(openTLS);
-        orgMap.get(orgId).setOrgMSPID(orgMSPID);
-        orgMap.get(orgId).setLeagueName(leagueName);
-        orgMap.get(orgId).setOrgName(orgName);
+        orgMap.get(sign).openTLS(openTLS);
+        orgMap.get(sign).setOrgMSPID(orgMSPID);
+        orgMap.get(sign).setLeagueName(leagueName);
+        orgMap.get(sign).setOrgName(orgName);
 
-        File storeFile = new File(String.format("%s/HFCStore%s.properties", System.getProperty("java.io.tmpdir"), orgId));
+        File storeFile = new File(String.format("%s/HFCStore%s.properties", System.getProperty("java.io.tmpdir"), sign));
         FbStore fabricStore = new FbStore(storeFile);
-        orgMap.get(orgId).setFabricStore(fabricStore);
+        orgMap.get(sign).setFabricStore(fabricStore);
 
         return this;
     }
 
     public OrgManager setUser(@Nonnull String username, @Nonnull String skPath, @Nonnull String certificatePath) {
-        orgMap.get(orgId).setUsername(username);
-        orgMap.get(orgId).addUser(username, skPath, certificatePath);
+        orgMap.get(chaincodeAndUserSign).setUsername(username);
+        orgMap.get(chaincodeAndUserSign).addUser(username, skPath, certificatePath);
         return this;
     }
 
-    public FbNetworkManager use(int orgId) throws Exception {
-        FbOrg org = orgMap.get(orgId);
+    public FbNetworkManager use(String chaincodeAndUserSign) throws Exception {
+        FbOrg org = orgMap.get(chaincodeAndUserSign);
         org.setClient(new FbClient(org.getUser()));
         org.getChannel().init(org);
         return new FbNetworkManager(org);
     }
 
     public void addOrderer(String name, String location, String serverCrtPath, String clientCertPath, String clientKeyPath) {
-        orgMap.get(orgId).addOrderer(name, String.format("%s%s", "grpc://", location), serverCrtPath, clientCertPath, clientKeyPath);
+        orgMap.get(chaincodeAndUserSign).addOrderer(name, String.format("%s%s", "grpc://", location), serverCrtPath, clientCertPath, clientKeyPath);
     }
 
 
     public void addPeer(String peerName, String peerLocation,  String peerEventHubLocation, String serverCrtPath, String clientCertPath, String clientKeyPath) {
-        orgMap.get(orgId).addPeer(peerName,String.format("%s%s", "grpc://", peerLocation), String.format("%s%s", "grpc://", peerEventHubLocation),
+        orgMap.get(
+                chaincodeAndUserSign
+        ).addPeer(peerName,String.format("%s%s", "grpc://", peerLocation), String.format("%s%s", "grpc://", peerEventHubLocation),
                 serverCrtPath, clientCertPath, clientKeyPath);
     }
 
 
-    public OrgManager setChainCode(String chaincodeName, String chaincodePath, String chaincodeSource, String chaincodePolicy, String chaincodeVersion, int proposalWaitTime, int invokeWaitTime) {
+    public OrgManager setChainCode(String chaincodeName, String chaincodePath, String chaincodeSource, String chaincodePolicy, String chaincodeVersion, int proposalWaitTime) {
         FbChainCode chaincode = new FbChainCode();
         chaincode.setChaincodeName(chaincodeName);
         chaincode.setChaincodeSource(chaincodeSource);
@@ -78,13 +81,13 @@ public class OrgManager {
         chaincode.setChaincodePolicy(chaincodePolicy);
         chaincode.setChaincodeVersion(chaincodeVersion);
         chaincode.setProposalWaitTime(proposalWaitTime);
-        chaincode.setTransactionWaitTime(invokeWaitTime);
-        if(orgMap.get(orgId).getChainCodes() == null){
+//        chaincode.setTransactionWaitTime(invokeWaitTime);
+        if(orgMap.get(chaincodeAndUserSign).getChainCodes() == null){
             List<FbChainCode> list = new LinkedList<>();
             list.add(chaincode);
-            orgMap.get(orgId).setChainCodes(list);
+            orgMap.get(chaincodeAndUserSign).setChainCodes(list);
         }else {
-            orgMap.get(orgId).getChainCodes().add(chaincode);
+            orgMap.get(chaincodeAndUserSign).getChainCodes().add(chaincode);
         }
         return this;
     }
@@ -92,39 +95,43 @@ public class OrgManager {
     public OrgManager setChannel(String channelName) {
         FbChannel channel = new FbChannel();
         channel.setChannelName(channelName);
-        orgMap.get(orgId).setChannel(channel);
+        orgMap.get(chaincodeAndUserSign).setChannel(channel);
         return this;
     }
 
     public OrgManager setBlockListener(BlockListener blockListener) {
-        orgMap.get(orgId).setBlockListener(blockListener);
+        orgMap.get(chaincodeAndUserSign).setBlockListener(blockListener);
         return this;
     }
 
+    public void setChaincodeEventListener(String eventNames, ChaincodeEventListener chaincodeEventListener) {
+        orgMap.get(chaincodeAndUserSign).setChaincodeEventListener(eventNames, chaincodeEventListener);
+    }
+
     public void add() {
-        if (orgMap.get(orgId).getPeers().size() == 0) {
+        if (orgMap.get(chaincodeAndUserSign).getPeers().size() == 0) {
             throw new RuntimeException("peers is null or peers size is 0");
         }
-        if (orgMap.get(orgId).getOrderers().size() == 0) {
+        if (orgMap.get(chaincodeAndUserSign).getOrderers().size() == 0) {
             throw new RuntimeException("orderers is null or orderers size is 0");
         }
-        if (orgMap.get(orgId).getChainCodes() == null) {
+        if (orgMap.get(chaincodeAndUserSign).getChainCodes() == null) {
             throw new RuntimeException("chaincode must be instantiated");
         }
 
         // 根据TLS开启状态循环确认Peer节点各服务的请求grpc协议
-        for (int i = 0; i < orgMap.get(orgId).getPeers().size(); i++) {
-            orgMap.get(orgId).getPeers().get(i).
-                    setPeerLocation(grpcTLSify(orgMap.get(orgId).isOpenTLS(), orgMap.get(orgId).getPeers().get(i).getPeerLocation()));
+        for (int i = 0; i < orgMap.get(chaincodeAndUserSign).getPeers().size(); i++) {
+            orgMap.get(chaincodeAndUserSign).getPeers().get(i).
+                    setPeerLocation(grpcTLSify(orgMap.get(chaincodeAndUserSign).isOpenTLS(), orgMap.get(chaincodeAndUserSign).getPeers().get(i).getPeerLocation()));
 
-            orgMap.get(orgId).getPeers().get(i)
-                    .setPeerEventHubLocation(grpcTLSify(orgMap.get(orgId).isOpenTLS(), orgMap.get(orgId).getPeers().get(i).getPeerEventHubLocation()));
+            orgMap.get(chaincodeAndUserSign).getPeers().get(i)
+                    .setPeerEventHubLocation(grpcTLSify(orgMap.get(chaincodeAndUserSign).isOpenTLS(), orgMap.get(chaincodeAndUserSign).getPeers().get(i).getPeerEventHubLocation()));
         }
 
         // 根据TLS开启状态循环确认Orderer节点各服务的请求grpc协议
-        for (int i = 0; i < orgMap.get(orgId).getOrderers().size(); i++) {
-            orgMap.get(orgId).getOrderers().get(i)
-                    .setOrdererLocation(grpcTLSify(orgMap.get(orgId).isOpenTLS(), orgMap.get(orgId).getOrderers().get(i).getOrdererLocation()));
+        for (int i = 0; i < orgMap.get(chaincodeAndUserSign).getOrderers().size(); i++) {
+            orgMap.get(chaincodeAndUserSign).getOrderers().get(i)
+                    .setOrdererLocation(grpcTLSify(orgMap.get(chaincodeAndUserSign).isOpenTLS(), orgMap.get(chaincodeAndUserSign).getOrderers().get(i).getOrdererLocation()));
         }
     }
 

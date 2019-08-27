@@ -155,9 +155,9 @@ public class ChaincodeController {
         Chaincode chaincode1 = chaincodeService.get(id);
         chaincode1 = chaincodeService.resetChaincode(chaincode1);
         chaincode1.setVersion(chaincode.getVersion());
+        chaincode1.setFlag(api.getFlag());
         List<String> strArray = Arrays.asList(api.getExec().split(","));
         chaincodeService.upgrade(chaincode1, sourceFile, strArray);
-
         return new ModelAndView(new RedirectView("list"));
     }
 
@@ -196,23 +196,24 @@ public class ChaincodeController {
         modelAndView.addObject("chaincodeId", chaincodeId);
 
         List<Api> apis = new ArrayList<>();
+        Api api = new Api("查询当前链信息", Api.Intent.INFO.getIndex());
         Api apiInvoke = new Api("执行智能合约", Api.Intent.INVOKE.getIndex());
         Api apiQuery = new Api("查询智能合约", Api.Intent.QUERY.getIndex());
-        Api api = new Api("查询当前链信息", Api.Intent.INFO.getIndex());
+
         Api apiHash = new Api("根据交易hash查询区块", Api.Intent.HASH.getIndex());
         Api apiNumber = new Api("根据交易区块高度查询区块", Api.Intent.NUMBER.getIndex());
         Api apiTxid = new Api("根据交易ID查询区块", Api.Intent.TXID.getIndex());
+        apis.add(api);
         apis.add(apiInvoke);
         apis.add(apiQuery);
-        apis.add(api);
         apis.add(apiHash);
         apis.add(apiNumber);
         apis.add(apiTxid);
 
         Api apiIntent = new Api();
-
         modelAndView.addObject("apis", apis);
         modelAndView.addObject("apiIntent", apiIntent);
+        modelAndView.addObject("cas",caService.listFullCA());
         return modelAndView;
     }
 
@@ -236,7 +237,7 @@ public class ChaincodeController {
                 modelAndView.addObject("method", "POST");
                 break;
             case INFO:
-                result = traceService.queryBlockChainInfo(id,api.getKey());
+                result = traceService.queryBlockChainInfo(id,api.getKey(), api.getFlag());
                 modelAndView.addObject("jsonStr", "");
                 modelAndView.addObject("method", "GET");
                 break;
@@ -301,6 +302,7 @@ public class ChaincodeController {
 
         String[] str = api.exec.trim().replaceAll("\\[","").replaceAll("\\]","").split(",");
         state.setStrArray(Arrays.asList(str));
+        state.setFlag(api.getFlag());
         return state;
     }
 
@@ -316,6 +318,7 @@ public class ChaincodeController {
         Trace trace = new Trace();
         trace.setId(id);
         trace.setTrace(api.exec.trim());
+        trace.setFlag(api.getFlag());
         return trace;
     }
 
@@ -323,6 +326,7 @@ public class ChaincodeController {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("id", trace.getId());
         jsonObject.put("trace", trace.getTrace());
+        jsonObject.put("caFlag",trace.getFlag());
         return jsonObject.toJSONString();
     }
 

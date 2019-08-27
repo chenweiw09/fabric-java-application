@@ -53,6 +53,7 @@ public class FbChainCode {
 
     /** 单个提案请求的超时时间以毫秒为单位 */
     private int proposalWaitTime = 200000;
+
     /** 事务等待时间以秒为单位 */
     private int transactionWaitTime = 120;
 

@@ -97,7 +97,7 @@ public class ChaincodeService implements BaseService {
     }
 
     public JSONObject upgrade(Chaincode chaincode, MultipartFile file, List<String> strArray) {
-        if (!verify(chaincode) || null == file || null != check(chaincode)) {
+        if (verify(chaincode) || null == file || null != check(chaincode)) {
             return responseFail("install error, param has none value and source mush be uploaded or had the same chaincode");
         }
 

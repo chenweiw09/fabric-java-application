@@ -52,10 +52,11 @@ public class TraceService implements BaseService {
     }
 
 
-    public JSONObject queryBlockChainInfo(int id, String key) {
+    public JSONObject queryBlockChainInfo(int id, String key, String caFlag) {
         Trace trace = new Trace();
         trace.setId(id);
         trace.setKey(key);
+        trace.setFlag(caFlag);
         return trace(trace, TraceIntent.INFO, caMapper);
     }
 

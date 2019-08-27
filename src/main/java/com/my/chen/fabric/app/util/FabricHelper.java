@@ -5,7 +5,9 @@ import com.my.chen.fabric.app.domain.*;
 import com.my.chen.fabric.sdk.FbNetworkManager;
 import com.my.chen.fabric.sdk.OrgManager;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,21 +16,23 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author chenwei
  * @version 1.0
  * @date 2019/8/2
- * @description
+ * @description  这里是在页面端看到的chaincode，之所以用chaincodeid做关联，是因为我们通常在chaincode上做管理
+ *               修正：这里不能用chaincodeId做关联，因为同一个chaincode，在安装的时候用到的身份是peer，实例化的时候用到的身份是Orderer，
+ *               所以需要根据身份来保存对应的网路信息
  */
 @Slf4j
 public class FabricHelper {
 
-    // 这里是在页面端看到的chaincode，之所以用chaincodeid做关联，是因为我们通常在chaincode上做管理
-    private int chaincodeId;
-
     private static FabricHelper instance;
 
-    private Map<Integer, FbNetworkManager> fabricManagerMap;
+    private Map<String, FbNetworkManager> fabricManagerMap;
+
+    private Map<Integer, String> signMap;
 
 
     private FabricHelper(){
         fabricManagerMap = new ConcurrentHashMap<>();
+        signMap = new ConcurrentHashMap<>();
     }
 
     // 单例模式获取对象
@@ -46,37 +50,38 @@ public class FabricHelper {
 
     public void removeManager(List<Peer> peers, ChannelMapper channelMapper, ChaincodeMapper chaincodeMapper){
         for(Peer peer : peers){
-            List<Channel> channels = channelMapper.findByPeerId(peer.getId());
-            for (Channel channel : channels) {
-                List<Chaincode> chaincodes = chaincodeMapper.findByChannelId(channel.getId());
-                for (Chaincode chaincode : chaincodes) {
-                    fabricManagerMap.remove(chaincode.getId());
-                }
-            }
+            removeManager(channelMapper.findByPeerId(peer.getId()), chaincodeMapper);
         }
     }
 
 
     public void removeManager(List<Channel> channels, ChaincodeMapper chaincodeMapper){
         for (Channel channel : channels) {
-            List<Chaincode> chaincodes = chaincodeMapper.findByChannelId(channel.getId());
-            for (Chaincode chaincode : chaincodes) {
-                fabricManagerMap.remove(chaincode.getId());
-            }
+            removeManager(chaincodeMapper.findByChannelId(channel.getId()));
+        }
+    }
+
+    public void removeManager(List<Chaincode> chaincodes){
+        for(Chaincode chaincode:chaincodes){
+            removeManager(chaincode.getId());
         }
     }
 
     public void removeManager(int chaincodeId){
-        fabricManagerMap.remove(chaincodeId);
+        String sign = signMap.get(chaincodeId);
+        if(StringUtils.isNotBlank(sign)){
+            fabricManagerMap.remove(sign);
+        }
+        signMap.remove(chaincodeId);
     }
 
 
     public FbNetworkManager get(LeagueMapper leagueMapper, OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chaincodeMapper,
                                 OrdererMapper ordererMapper, PeerMapper peerMapper, CA ca, int chaincodeId) throws Exception {
 
-        this.chaincodeId = chaincodeId;
+        String cacheName = ca.getFlag()+chaincodeId;
 
-        FbNetworkManager fabricManager = fabricManagerMap.get(chaincodeId);
+        FbNetworkManager fabricManager = fabricManagerMap.get(cacheName);
         // 如果没有被缓存过，就需要创建网络
         if(null ==  fabricManager){
             Chaincode chaincode = chaincodeMapper.findById(chaincodeId).get();
@@ -98,13 +103,75 @@ public class FabricHelper {
             log.info(String.format("league = %s", league.getName()));
 
             if (orderers.size() != 0 && peers.size() != 0) {
-                fabricManager = createFabricManager(league, org, channel, chaincode, orderers, peers, ca);
-                fabricManagerMap.put(chaincodeId, fabricManager);
+                fabricManager = createFabricManager(league, org, channel, chaincode, orderers, peers, ca, cacheName);
+                fabricManagerMap.put(cacheName, fabricManager);
+                signMap.put(chaincodeId, cacheName);
             }
 
         }
         return fabricManager;
     }
+
+
+
+    private static FbNetworkManager createFabricManager(League league, Org org, Channel channel, Chaincode chainCode,
+                                                        List<Orderer> orderers, List<Peer> peers, CA ca, String cacheName) throws Exception {
+        OrgManager orgManager = new OrgManager();
+
+        // init manager
+        orgManager.init(cacheName, league.getName(), org.getName(), org.getMspId(), org.isTls())
+                .setUser(ca.getName(), ca.getSk(), ca.getCertificate())
+                .setChannel(channel.getName())
+                .setChainCode(chainCode.getName(), chainCode.getPath(), chainCode.getSource(), chainCode.getPolicy(),
+                        chainCode.getVersion(), chainCode.getProposalWaitTime());
+
+        for (Orderer orderer : orderers) {
+            orgManager.addOrderer(orderer.getName(), orderer.getLocation(),orderer.getServerCrtPath(), orderer.getClientCertPath(), orderer.getClientKeyPath());
+        }
+        for (Peer peer : peers) {
+            orgManager.addPeer(peer.getName(), peer.getLocation(), peer.getEventHubLocation(), peer.getServerCrtPath(), peer.getClientCertPath(), peer.getClientKeyPath());
+        }
+
+
+        // init blockListener
+        orgManager.setBlockListener(jsonObject -> {
+            try {
+                if (channel.isBlockListener() && StringUtils.isNotEmpty(channel.getCallbackLocation())) {
+                    HttpUtil.post(channel.getCallbackLocation(), jsonObject.toJSONString());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            BlockUtil.obtain().updataChannelData(channel.getId());
+        });
+
+        // init chaincodeListener
+        if (chainCode.isChaincodeEventListener() && StringUtils.isNotEmpty(chainCode.getCallbackLocation())
+                && StringUtils.isNotEmpty(chainCode.getEvents())) {
+            orgManager.setChaincodeEventListener(chainCode.getEvents(), (handle, jsonObject, eventName, chaincodeId, txId) -> {
+                log.debug(String.format("handle = %s", handle));
+                log.debug(String.format("eventName = %s", eventName));
+                log.debug(String.format("chaincodeId = %s", chaincodeId));
+                log.debug(String.format("txId = %s", txId));
+                log.debug(String.format("code = %s", String.valueOf(jsonObject.getInteger("code"))));
+                log.debug(String.format("data = %s", jsonObject.getJSONObject("data").toJSONString()));
+                try {
+                    jsonObject.put("handle", handle);
+                    jsonObject.put("eventName", eventName);
+                    jsonObject.put("chaincodeId", chaincodeId);
+                    jsonObject.put("txId", txId);
+                    HttpUtil.post(chainCode.getCallbackLocation(), jsonObject.toJSONString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+
+        }
+
+        orgManager.add();
+        return orgManager.use(cacheName);
+    }
+
 
 
 
@@ -185,27 +252,4 @@ public class FabricHelper {
 //        }
 //
 //    }
-
-
-    private static FbNetworkManager createFabricManager(League league, Org org, Channel channel, Chaincode chainCode, List<Orderer> orderers, List<Peer> peers, CA ca) throws Exception {
-        OrgManager orgManager = new OrgManager();
-        orgManager
-                .init(org.getId(), league.getName(), org.getName(), org.getMspId(), org.isTls())
-                .setUser(ca.getName(), ca.getSk(), ca.getCertificate())
-                .setChannel(channel.getName())
-                .setChainCode(chainCode.getName(), chainCode.getPath(), chainCode.getSource(), chainCode.getPolicy(), chainCode.getVersion(), chainCode.getProposalWaitTime(),1200)
-                .setBlockListener(map -> {
-                    log.info("----------------------"+map.get("code"));
-                    log.info("----------------------"+map.get("data"));
-                });
-        for (Orderer orderer : orderers) {
-            orgManager.addOrderer(orderer.getName(), orderer.getLocation(),orderer.getServerCrtPath(), orderer.getClientCertPath(), orderer.getClientKeyPath());
-        }
-        for (Peer peer : peers) {
-            orgManager.addPeer(peer.getName(), peer.getLocation(), peer.getEventHubLocation(), peer.getServerCrtPath(), peer.getClientCertPath(), peer.getClientKeyPath());
-        }
-        orgManager.add();
-        return orgManager.use(org.getId());
-    }
-
 }
