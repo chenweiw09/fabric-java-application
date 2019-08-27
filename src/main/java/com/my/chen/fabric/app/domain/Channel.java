@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -38,7 +39,6 @@ public class Channel implements Serializable {
     @Column
     private long updateTime;
 
-
     private String peerName; // optional
 
     private String orgName; // optional
@@ -47,5 +47,17 @@ public class Channel implements Serializable {
 
     private int chaincodeCount; // optional
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Channel channel = (Channel) o;
+        return id == channel.id && peerId == channel.peerId;
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), id, name, peerId, blockListener, callbackLocation, height, createTime, updateTime, peerName, orgName, leagueName, chaincodeCount);
+    }
 }

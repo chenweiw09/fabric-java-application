@@ -13,11 +13,18 @@ public class Transaction {
 
     /** 序号，无实际意义 */
     private int index;
+
     /** 块高度 */
-    private int num;
+    private int blockHeight;
+
     private int txCount;
+
     private String channelName;
-    private String createMSPID;
+
+    private String dataHash;
+
+    private String previousDataHash;
+
     private String date;
 
 }

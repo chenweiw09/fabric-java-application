@@ -27,12 +27,15 @@ public class FabricHelper {
 
     private Map<String, FbNetworkManager> fabricManagerMap;
 
+    private Map<Integer, FbNetworkManager> channelManagerMap;
+
     private Map<Integer, String> signMap;
 
 
     private FabricHelper(){
         fabricManagerMap = new ConcurrentHashMap<>();
         signMap = new ConcurrentHashMap<>();
+        channelManagerMap = new ConcurrentHashMap<>();
     }
 
     // 单例模式获取对象
@@ -57,6 +60,7 @@ public class FabricHelper {
 
     public void removeManager(List<Channel> channels, ChaincodeMapper chaincodeMapper){
         for (Channel channel : channels) {
+            channelManagerMap.remove(channel.getId());
             removeManager(chaincodeMapper.findByChannelId(channel.getId()));
         }
     }
@@ -73,6 +77,36 @@ public class FabricHelper {
             fabricManagerMap.remove(sign);
         }
         signMap.remove(chaincodeId);
+    }
+
+
+
+    public FbNetworkManager getByChannelId(LeagueMapper leagueMapper, OrgMapper orgMapper, ChannelMapper channelMapper, ChaincodeMapper chaincodeMapper,
+                                OrdererMapper ordererMapper, PeerMapper peerMapper, CA ca, int channelId) throws Exception {
+
+        FbNetworkManager fabricManager = channelManagerMap.get(channelId);
+        if(null ==  fabricManager){
+            Channel channel =  channelMapper.findById(channelId).get();
+            log.info(String.format("channel = %s", channel.toString()));
+
+            Peer peer = peerMapper.findById(channel.getPeerId()).get();
+            log.info(String.format("peer = %s", peer.toString()));
+
+            int orgId = peer.getOrgId();
+            List<Peer> peers = peerMapper.findByOrgId(orgId);
+            List<Orderer> orderers = ordererMapper.findByOrgId(orgId);
+            Org org = orgMapper.findById(orgId).get();
+            log.info(String.format("org = %s", org.toString()));
+
+            League league = leagueMapper.findById(org.getLeagueId()).get();
+            log.info(String.format("league = %s", league.getName()));
+
+            if (orderers.size() != 0 && peers.size() != 0) {
+                fabricManager = createFabricManager(league, org, channel, null, orderers, peers, ca, String.valueOf(channelId)+"c");
+                channelManagerMap.put(channelId, fabricManager);
+            }
+        }
+        return fabricManager;
     }
 
 
@@ -114,7 +148,7 @@ public class FabricHelper {
 
 
 
-    private static FbNetworkManager createFabricManager(League league, Org org, Channel channel, Chaincode chainCode,
+    private static FbNetworkManager createFabricManager(League league, Org org, Channel channel, Chaincode chaincode,
                                                         List<Orderer> orderers, List<Peer> peers, CA ca, String cacheName) throws Exception {
         OrgManager orgManager = new OrgManager();
 
@@ -122,8 +156,13 @@ public class FabricHelper {
         orgManager.init(cacheName, league.getName(), org.getName(), org.getMspId(), org.isTls())
                 .setUser(ca.getName(), ca.getSk(), ca.getCertificate())
                 .setChannel(channel.getName())
-                .setChainCode(chainCode.getName(), chainCode.getPath(), chainCode.getSource(), chainCode.getPolicy(),
-                        chainCode.getVersion(), chainCode.getProposalWaitTime());
+                .setChainCode(
+                        null == chaincode ? "" : chaincode.getName(),
+                        null == chaincode ? "" : chaincode.getPath(),
+                        null == chaincode ? "" : chaincode.getSource(),
+                        null == chaincode ? "" : chaincode.getPolicy(),
+                        null == chaincode ? "" : chaincode.getVersion(),
+                        null == chaincode ? 0 : chaincode.getProposalWaitTime());
 
         for (Orderer orderer : orderers) {
             orgManager.addOrderer(orderer.getName(), orderer.getLocation(),orderer.getServerCrtPath(), orderer.getClientCertPath(), orderer.getClientKeyPath());
@@ -131,7 +170,6 @@ public class FabricHelper {
         for (Peer peer : peers) {
             orgManager.addPeer(peer.getName(), peer.getLocation(), peer.getEventHubLocation(), peer.getServerCrtPath(), peer.getClientCertPath(), peer.getClientKeyPath());
         }
-
 
         // init blockListener
         orgManager.setBlockListener(jsonObject -> {
@@ -142,13 +180,13 @@ public class FabricHelper {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            BlockUtil.obtain().updataChannelData(channel.getId());
+            BlockUtil.obtain().updateChannelData(channel.getId());
         });
 
         // init chaincodeListener
-        if (chainCode.isChaincodeEventListener() && StringUtils.isNotEmpty(chainCode.getCallbackLocation())
-                && StringUtils.isNotEmpty(chainCode.getEvents())) {
-            orgManager.setChaincodeEventListener(chainCode.getEvents(), (handle, jsonObject, eventName, chaincodeId, txId) -> {
+        if (chaincode != null && chaincode.isChaincodeEventListener() && StringUtils.isNotEmpty(chaincode.getCallbackLocation())
+                && StringUtils.isNotEmpty(chaincode.getEvents())) {
+            orgManager.setChaincodeEventListener(chaincode.getEvents(), (handle, jsonObject, eventName, chaincodeId, txId) -> {
                 log.debug(String.format("handle = %s", handle));
                 log.debug(String.format("eventName = %s", eventName));
                 log.debug(String.format("chaincodeId = %s", chaincodeId));
@@ -160,7 +198,7 @@ public class FabricHelper {
                     jsonObject.put("eventName", eventName);
                     jsonObject.put("chaincodeId", chaincodeId);
                     jsonObject.put("txId", txId);
-                    HttpUtil.post(chainCode.getCallbackLocation(), jsonObject.toJSONString());
+                    HttpUtil.post(chaincode.getCallbackLocation(), jsonObject.toJSONString());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -171,8 +209,6 @@ public class FabricHelper {
         orgManager.add();
         return orgManager.use(cacheName);
     }
-
-
 
 
 //    public static void main(String[] args) {

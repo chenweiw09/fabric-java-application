@@ -1,5 +1,6 @@
 package com.my.chen.fabric.app.util;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -39,7 +40,7 @@ public class DateUtil {
         }
     }
 
-    public static Date str2Date(String dateStr, String format) throws Exception {
+    public static Date str2Date(String dateStr, String format) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.CHINA);
         return sdf.parse(dateStr);
     }

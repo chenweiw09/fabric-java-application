@@ -72,8 +72,8 @@ public class TraceService implements BaseService {
 
     public JSONObject trace(Trace trace, TraceIntent intent, CA ca){
         try {
-            FbNetworkManager manager = FabricHelper.getInstance().get(leagueMapper, orgMapper, channelMapper, chaincodeMapper, ordererMapper,
-                    peerMapper, ca, trace.getId());
+            FbNetworkManager manager = FabricHelper.getInstance().getByChannelId(leagueMapper, orgMapper, channelMapper, chaincodeMapper, ordererMapper,
+                    peerMapper, ca, trace.getChannelId());
             return trace(trace, intent, manager);
         }catch (Exception e){
             log.error("trace error",e);

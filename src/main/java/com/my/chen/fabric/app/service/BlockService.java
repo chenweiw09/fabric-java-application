@@ -41,7 +41,8 @@ public class BlockService {
     }
 
     public List<Block> getByChannelId(int channelId){
-        return blockMapper.findByChannelId(channelId);
+        List<Block> list = blockMapper.findByChannelId(channelId);
+        return list;
     }
 
 

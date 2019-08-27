@@ -8,7 +8,9 @@ import com.my.chen.fabric.app.domain.Channel;
 import com.my.chen.fabric.app.dto.Trace;
 import com.my.chen.fabric.app.service.*;
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
+import org.springframework.util.CollectionUtils;
 
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RejectedExecutionHandler;
@@ -24,10 +26,8 @@ public class BlockUtil {
 
     private static BlockUtil instance;
 
-    private final List<Channel> channels = new LinkedList<>();
-    private final List<Block> blocks = new LinkedList<>();
+    private final List<Channel> cacheChannels = new LinkedList<>();
     private final Map<Integer, Boolean> channelRun = new HashMap<>();
-    private final Map<Integer, Boolean> channelUpdata = new HashMap<>();
 
     // 使用默认的拒绝策略
     private static final RejectedExecutionHandler defaultHandler = new java.util.concurrent.ThreadPoolExecutor.AbortPolicy();
@@ -45,18 +45,19 @@ public class BlockUtil {
         return instance;
     }
 
+    // 提供给定时任务定时刷新channel中的block, 这里需要注意的是如果channel有变化，需要在这里去除缓存的channel
     public void checkChannel(ChannelService channelService, CAService caService, BlockService blockService, TraceService traceService, List<Channel> channels) {
+        refreshCacheChannel(channels);
         for (Channel channel : channels) {
-            boolean hadOne = false;
-            for (Channel channelTmp : this.channels) {
+            boolean exist = false;
+            for (Channel channelTmp : this.cacheChannels) {
                 if (channelTmp.getId() == channel.getId()) {
-                    hadOne = true;
+                    exist = true;
                 }
             }
-            if (!hadOne) {
-                this.channels.add(channel);
+            if (!exist) {
+                this.cacheChannels.add(channel);
                 this.channelRun.put(channel.getId(), true);
-                this.channelUpdata.put(channel.getId(), true);
                 execChannel(channelService, caService, blockService, traceService, channel.getId());
             }
             CA ca = caService.listByPeerId(channel.getPeerId()).get(0);
@@ -71,114 +72,110 @@ public class BlockUtil {
     }
 
     private void execChannel(ChannelService channelService, CAService caService, BlockService blockService, TraceService traceService, int channelId) {
-        poolExecutor.submit(() -> {
-            Block block = blockService.getByChannelId(channelId).get(0);
-            int height = -1;
-            if (null != block) {
-                height = block.getHeight();
-            }
-            height = height == -1 ? 0 : height + 1;
-            CA ca = caService.listByPeerId(channelService.get(channelId).getPeerId()).get(0);
-            while (channelRun.get(channelId)) {
-                if (!channelUpdata.get(channelId)) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    continue;
-                }
-                if (execBlock(blockService, traceService, channelId, height, ca)) {
-                    height++;
-                } else {
-                    synchronized (blocks) {
-                        insert(blockService);
-                    }
-                    channelUpdata.put(channelId, false);
-                }
-            }
-        });
+        insertBlock(channelService, caService, blockService, traceService, channelId);
     }
+
+
+    private void insertBlock(ChannelService channelService, CAService caService, BlockService blockService, TraceService traceService, int channelId) {
+        List<Block> list = blockService.getByChannelId(channelId);
+
+        int height = 0;
+        if (!CollectionUtils.isEmpty(list)) {
+            list.sort((o1, o2) -> o2.getHeight() - o1.getHeight());
+            height = list.get(0).getHeight() + 1;
+        }
+
+        CA ca = caService.listByPeerId(channelService.get(channelId).getPeerId()).get(0);
+        while (channelRun.get(channelId)) {
+            if (execBlock(blockService, traceService, channelId, height, ca)) {
+                height++;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     private boolean execBlock(BlockService blockService, TraceService traceService, int channelId, int height, CA ca) {
         Trace trace = new Trace();
         trace.setChannelId(channelId);
         trace.setTrace(String.valueOf(height));
         JSONObject blockMessage = traceService.queryBlockByNumberWithCa(trace, ca);
-        return execBlock(blockMessage, blockService, channelId, height);
-    }
-
-    private boolean execBlock(JSONObject blockJson, BlockService blockService, int channelId, int height) {
         try {
-            int code = blockJson.containsKey("code") ? blockJson.getInteger("code") : BaseService.FAIL;
-            if (code != BaseService.SUCCESS) {
-                return false;
+            Block block = execBlock(blockMessage, channelId, height);
+            if(block != null){
+                blockService.add(block);
+                return true;
             }
-
-            JSONArray envelopes = blockJson.containsKey("data") ? blockJson.getJSONObject("data").getJSONArray("envelopes") : new JSONArray();
-            int txCount = 0;
-            int rwSetCount = 0;
-            int size = envelopes.size();
-            for (int i = 0; i < size; i++) {
-                JSONObject envelope = envelopes.getJSONObject(i);
-                if (envelope.containsKey("transactionEnvelopeInfo")) {
-                    txCount += envelope.getJSONObject("transactionEnvelopeInfo").getInteger("txCount");
-                    JSONArray transactionActionInfoArray = envelope.getJSONObject("transactionEnvelopeInfo").getJSONArray("transactionActionInfoArray");
-                    int transactionActionInfoArraySize = transactionActionInfoArray.size();
-                    for (int j = 0; j < transactionActionInfoArraySize; j++) {
-                        JSONObject transactionActionInfo = transactionActionInfoArray.getJSONObject(j);
-                        rwSetCount += transactionActionInfo.getJSONObject("rwsetInfo").getInteger("nsRWsetCount");
-                    }
-                }
-            }
-
-            String timestamp = envelopes.getJSONObject(0).getString("timestamp");
-            Date date = DateUtil.str2Date(timestamp, "yyyy/MM/dd HH:mm:ss");
-
-            Block block = new Block();
-            block.setChannelId(channelId);
-            block.setHeight(height);
-            block.setDataHash(blockJson.getJSONObject("data").getString("dataHash"));
-            block.setCalculatedHash(blockJson.getJSONObject("data").getString("calculatedBlockHash"));
-            block.setPreviousHash(blockJson.getJSONObject("data").getString("previousHashID"));
-            block.setEnvelopeCount(size);
-            block.setTxCount(txCount);
-            block.setRwSetCount(rwSetCount);
-            block.setTimestamp(timestamp);
-            block.setCalculateDate(Integer.valueOf(DateUtil.date2Str(date, "yyyyMMdd")));
-            block.setCreateTime(DateUtil.getCurrent());
-            block.setUpdateTime(DateUtil.getCurrent());
-
-            synchronized (blocks) {
-                blocks.add(block);
-                if (blocks.size() >= 100) {
-                    insert(blockService);
-                    Thread.sleep(1000);
-                }
-            }
-        } catch (Exception e) {
+        } catch (ParseException e) {
             e.printStackTrace();
-            return false;
         }
-        return true;
+        return false;
     }
 
-    private void insert(BlockService blockService) {
-        blockService.addBlockList(blocks);
-        blocks.clear();
-    }
 
-    void removeChannel(int channelId) {
-        channelRun.put(channelId, false);
-        for (Channel channel : channels) {
-            if (channel.getId() == channelId) {
-                channels.remove(channel);
+
+    private Block execBlock(JSONObject blockJson, int channelId, int height) throws ParseException {
+        int code = blockJson.containsKey("code") ? blockJson.getInteger("code") : BaseService.FAIL;
+        if (code != BaseService.SUCCESS) {
+            return null;
+        }
+
+        JSONArray envelopes = blockJson.containsKey("data") ? blockJson.getJSONObject("data").getJSONArray("envelopes") : new JSONArray();
+        int txCount = 0;
+        int rwSetCount = 0;
+        int size = envelopes.size();
+        for (int i = 0; i < size; i++) {
+            JSONObject envelope = envelopes.getJSONObject(i);
+            if (envelope.containsKey("transactionEnvelopeInfo")) {
+                txCount += envelope.getJSONObject("transactionEnvelopeInfo").getInteger("txCount");
+                JSONArray transactionActionInfoArray = envelope.getJSONObject("transactionEnvelopeInfo").getJSONArray("transactionActionInfoArray");
+                int transactionActionInfoArraySize = transactionActionInfoArray.size();
+                for (int j = 0; j < transactionActionInfoArraySize; j++) {
+                    JSONObject transactionActionInfo = transactionActionInfoArray.getJSONObject(j);
+                    rwSetCount += transactionActionInfo.getJSONObject("rwsetInfo").getInteger("nsRWsetCount");
+                }
             }
         }
+
+        String timestamp = envelopes.getJSONObject(0).getString("timestamp");
+        Date date = DateUtil.str2Date(timestamp, "yyyy/MM/dd HH:mm:ss");
+
+        Block block = new Block();
+        block.setChannelId(channelId);
+        block.setHeight(height);
+        block.setDataHash(blockJson.getJSONObject("data").getString("dataHash"));
+        block.setCalculatedHash(blockJson.getJSONObject("data").getString("calculatedBlockHash"));
+        block.setPreviousHash(blockJson.getJSONObject("data").getString("previousHashID"));
+        block.setEnvelopeCount(size);
+        block.setTxCount(txCount);
+        block.setRwSetCount(rwSetCount);
+        block.setTimestamp(timestamp);
+        block.setCalculateDate(Integer.valueOf(DateUtil.date2Str(date, "yyyyMMdd")));
+        block.setCreateTime(DateUtil.getCurrent());
+        block.setUpdateTime(DateUtil.getCurrent());
+        return block;
     }
 
-    void updataChannelData(int channelId) {
-        channelUpdata.put(channelId, true);
+    // 缓存的channel只能是查询出来和原来在缓存中有效的
+    private void refreshCacheChannel(List<Channel> channels){
+        synchronized (cacheChannels){
+            List<Channel> list = new LinkedList<>();
+            for(Channel channel : channels){
+                if(cacheChannels.contains(channel)){
+                    list.add(channel);
+                }
+            }
+            cacheChannels.clear();
+            cacheChannels.addAll(list);
+        }
+    }
+
+    void updateChannelData(int channelId) {
+        channelRun.put(channelId, true);
     }
 }
 

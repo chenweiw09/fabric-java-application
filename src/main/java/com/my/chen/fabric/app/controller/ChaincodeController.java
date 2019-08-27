@@ -22,7 +22,6 @@ import java.util.List;
 /**
  * 描述：
  *
- * @author : Aberic 【2018/6/4 15:01】
  */
 @CrossOrigin
 @RestController
