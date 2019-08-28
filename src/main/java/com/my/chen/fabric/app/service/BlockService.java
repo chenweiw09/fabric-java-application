@@ -60,16 +60,15 @@ public class BlockService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "id");
 
-//        Specification specification = (Specification<Block>) (root, criteriaQuery, criteriaBuilder) -> {
-//            List<Predicate> predicates = new ArrayList<>();
-//            if (channelId > 0) {
-//                predicates.add(criteriaBuilder.equal(root.get("channelId").as(Integer.class), channelId));
-//            }
-//            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-//        };
+        Specification specification = (Specification<Block>) (root, criteriaQuery, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (channelId > 0) {
+                predicates.add(criteriaBuilder.equal(root.get("channelId").as(Integer.class), channelId));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
 
-//        Page<Block> pageList = blockMapper.findAll(specification, pageable);
-        Page<Block> pageList = blockMapper.findAll(pageable);
+        Page<Block> pageList = blockMapper.findAll(specification, pageable);
         return pageList;
 
     }

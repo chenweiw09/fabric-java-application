@@ -2,20 +2,14 @@ package com.my.chen.fabric.sdk;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Getter;
-import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -61,7 +55,7 @@ public class FbNetworkManager {
      *
      * @param args 初始化参数数组
      */
-    public JSONObject instantiate(String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
+    public JSONObject instantiate(String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException{
         return getChainCode().instantiate(org, args);
     }
 
@@ -70,7 +64,7 @@ public class FbNetworkManager {
      *
      * @param args 初始化参数数组
      */
-    public JSONObject upgrade(String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException, InterruptedException, ExecutionException, TimeoutException {
+    public JSONObject upgrade(String[] args) throws ProposalException, InvalidArgumentException, IOException, ChaincodeEndorsementPolicyParseException {
         return getChainCode().upgrade(org, args);
     }
 
@@ -80,7 +74,7 @@ public class FbNetworkManager {
      * @param fcn  方法名
      * @param args 参数数组
      */
-    public JSONObject invoke(String fcn, String[] args) throws InvalidArgumentException, ProposalException, IOException, InterruptedException, ExecutionException, TimeoutException {
+    public JSONObject invoke(String fcn, String[] args) throws InvalidArgumentException, ProposalException, IOException {
         return getChainCode().invoke(org, fcn, args);
     }
 
