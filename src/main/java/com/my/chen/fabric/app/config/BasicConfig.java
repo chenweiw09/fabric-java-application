@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-import static com.my.chen.fabric.app.config.Config.BASIC_PATH;
-
 /**
  * @author chenwei
  * @version 1.0
@@ -255,7 +253,7 @@ public class BasicConfig {
     }
 
     private static String getChannelPath() {
-        return BASIC_PATH;
+        return "";
     }
 
 }

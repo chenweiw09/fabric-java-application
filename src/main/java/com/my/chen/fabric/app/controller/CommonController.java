@@ -16,7 +16,6 @@ import java.util.List;
 
 /**
  * 描述：
- *
  */
 @RestController
 @RequestMapping("")
@@ -45,44 +44,40 @@ public class CommonController {
 
 
     @GetMapping(value = "index")
-    public ModelAndView index(){
+    public ModelAndView index() {
         ModelAndView modelAndView = new ModelAndView("index");
         getCount(modelAndView);
 
         // 直接查询对应的channel信息
-        List<Channel> channels = channelService.listAll();
+//        List<Channel> channels = channelService.listAll();
         List<Transaction> tmpTransactions = new ArrayList<>();
 
         int k = 1;
-        for(Channel channel : channels){
-            Transaction transaction = new Transaction();
-            transaction.setChannelName(channel.getName());
-            // 根据channel查询block
-            List<Block> blocks = blockService.getByChannelId(channel.getId());
-            if(!CollectionUtils.isEmpty(blocks)){
-                blocks.sort((o1,o2)->o2.getHeight()-o1.getHeight());
-                for (Block block : blocks) {
-                    if (block.getHeight()+1 == channel.getHeight()) {
-                        transaction.setDataHash(block.getDataHash());
-                        transaction.setPreviousDataHash(block.getPreviousHash());
-                        transaction.setTxCount(block.getTxCount());
-                        transaction.setDate(block.getTimestamp());
-                        transaction.setBlockHeight(block.getHeight());
-                        break;
-                    }
-                }
+        // 根据channel查询block
+        List<Block> blocks = blockService.getAllBlocks(0, 0,8).getContent();
+        if (!CollectionUtils.isEmpty(blocks)) {
+            for (Block block : blocks) {
+                Transaction transaction = new Transaction();
+                transaction.setChannelName(block.getPeerChannelName());
+                transaction.setDataHash(block.getDataHash());
+                transaction.setPreviousDataHash(block.getPreviousHash());
+                transaction.setTxCount(block.getTxCount());
+                transaction.setDate(block.getTimestamp());
+                transaction.setBlockHeight(block.getHeight());
+                transaction.setIndex(k++);
+                tmpTransactions.add(transaction);
             }
-            transaction.setIndex(k++);
-            tmpTransactions.add(transaction);
         }
+
+
 
         modelAndView.addObject("transactions", tmpTransactions);
         return modelAndView;
     }
 
-    private void getCount(ModelAndView modelAndView){
+    private void getCount(ModelAndView modelAndView) {
         int leagueCount = leagueService.listAll().size();
-        int orgCount =orgService.count();
+        int orgCount = orgService.count();
         int ordererCount = ordererService.count();
         int peerCount = peerService.count();
         int channelCount = channelService.count();
